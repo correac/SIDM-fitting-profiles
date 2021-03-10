@@ -27,7 +27,8 @@ def calcR200(x, rs, Ms, z):
     Yc = np.log(1. + c) - c / (1. + c)
     Y1 = np.log(2.) - 0.5
     M200_1 = (4. * np.pi / 3.) * 200. * rhocrit * x ** 3  # Msun
-    M200_2 = Ms * Yc / Y1
+    M200_1 = np.log10(M200_1)
+    M200_2 = Ms + np.log10( Yc / Y1 )
     f = M200_1 - M200_2
     return f
 
@@ -39,6 +40,7 @@ def calc_Ms(rs, rhos):
     deltar = np.append(deltar, deltar[-1])
     rho = rhos * rho_nfw(r / rs)
     mass = 4. * np.pi * np.cumsum(rho * r ** 2 * deltar)
+    mass = np.log10(mass)
     interpolate = interp1d(r, mass)
     Ms = interpolate(rs)
     return Ms
@@ -77,10 +79,17 @@ def model_params(N0, v0, sigma0):
     rhos = 10 ** sol.x[1]
     return r1, rho1, r0, rho0, rs, rhos
 
-def plot_solution(xdata, ydata, yerrdata, N0, v0, sigma0, output_name, output_file):
+def plot_solution(xdata, ydata, yerrdata, soln, output_name, output_file):
 
+    # Extract solution:
+    N0, v0, sigma0 = soln.x
+    N0 = 10 ** N0
+    v0 = 10 ** v0
+    sigma0 = 10 ** sigma0
+
+    # Calculate additional params:
     r1, rho1, r0, rho0, rs, rhos = model_params(N0, v0, sigma0)
-    c200, M200 = calculate_additional_params(r1, r0, rho0, rs, rhos)
+    c200, M200 = calculate_additional_params(rs, rhos)
 
     # Output best-fit model params to file:
     header = "Maximum likelihood estimates \n"

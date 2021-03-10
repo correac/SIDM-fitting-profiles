@@ -12,12 +12,17 @@ warnings.filterwarnings('ignore', 'The iteration is not making good progress')
 
 if __name__ == '__main__':
 
+
     # Read initial data
     #file_name = "../../../FermionDSph/Code/Final_Data/Carina/output_rho.txt"
     file_name = "./data/Profile_halo_M12_L025N376_sigma_10.txt"
-    output_file = "Output_M12_L025N376_sigma_10.txt"
-    output_plot_initial = "M12_L025N376_sigma_10_initial_fit.png"
-    output_plot_final = "M12_L025N376_sigma_10_final_fit.png"
+
+    # Output data
+    output_folder = './output/'
+    output_file = output_folder+"Output_M12_L025N376_sigma_10.txt"
+    output_plot_initial = output_folder+"M12_L025N376_sigma_10_initial_fit.png"
+    output_plot_final = output_folder+"M12_L025N376_sigma_10_final_fit.png"
+    output_corner_plot = output_folder+"corner_M12_L025N376_sigma_10.png"
 
     x, y, yerr, errorbar = read_data(file_name)
 
@@ -46,13 +51,12 @@ if __name__ == '__main__':
     soln = minimize(nll, initial, args=(x, y, yerr))
     N0_ml, v0_ml, sigma0_ml = soln.x
 
-
     print("Maximum likelihood estimates:")
     print("N0 = {0:.3f}".format(N0_ml))
     print("v0 = {0:.3f}".format(v0_ml))
     print("sigma0 = {0:.3f}".format(sigma0_ml))
 
     print("======")
-    plot_solution(x, 10**y, 10**errorbar, 10**N0_ml, 10**v0_ml, 10**sigma0_ml, output_plot_final, output_file)
+    plot_solution(x, 10**y, 10**errorbar, soln, output_plot_final, output_file)
 
-    run_mcmc(soln, x, y, yerr)
+    run_mcmc(soln, x, y, yerr,output_corner_plot)
