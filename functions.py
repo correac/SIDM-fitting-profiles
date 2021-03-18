@@ -7,7 +7,7 @@ def read_data(file):
     # Remove potential zeros before we begin
     nozero = data[:,2] > 0
     data = data[nozero,:]
-    min_rho = np.log10(data[:,1]) >= 4.
+    min_rho = np.log10(data[:,1]) >= 3.
     data = data[min_rho, :]
 
     # Next:
@@ -16,15 +16,6 @@ def read_data(file):
     yerr = np.sqrt( (y-np.log10(data[:,2]))**2 + (np.log10(data[:,3])-y)**2)
     errorbar = np.log10( np.sqrt( (data[:,1]-data[:,2])**2 + (data[:,3]-data[:,1])**2) )
 
-    #finterpolate = interp1d(x, y)
-    #xdata = np.arange(-2,2,0.2)
-    #xdata = 10**xdata
-    #y = finterpolate(xdata)
-    #finterpolate = interp1d(x, yerr)
-    #yerr = finterpolate(xdata)
-    #finterpolate = interp1d(x, errorbar)
-    #errorbar = finterpolate(xdata)
-    #x = xdata
     return x, y, yerr, errorbar
 
 

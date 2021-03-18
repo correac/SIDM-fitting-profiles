@@ -97,15 +97,16 @@ def plot_solution(xdata, ydata, yerrdata, soln, output_name, output_file):
     names = np.array(['r1', 'rho1', 'r0','rho0', 'rs', 'rhos',
                       'c200', 'M200', 'N0', 'v0', 'sigma0'])
 
-    floats = np.array([r1, np.log10(rho1), r0, np.log10(rho0), rs, np.log10(rhos),
-                        c200, M200, N0, v0, sigma0])
+    floats = np.array([r1, np.log10(rho1), r0, np.log10(rho0),
+                       rs, np.log10(rhos), c200, M200,
+                       N0, v0, sigma0], dtype="object")
     ab = np.zeros(names.size, dtype=[('var1', 'U6'), ('var2', float)])
     ab['var1'] = names
     ab['var2'] = floats
     np.savetxt(output_file, ab, fmt="%6s %10.3f", header=header)
 
     # Plotting best-fit model:
-    xrange = np.arange(0, 3, 0.1)
+    xrange = np.arange(-1, 3, 0.1)
     xrange = 10 ** xrange
     model = rho_joint_profiles(xrange, r1, r0, rho0, rs, rhos)
     model_nfw = rhos * rho_nfw(xrange / rs)
@@ -153,8 +154,8 @@ def plot_solution(xdata, ydata, yerrdata, soln, output_name, output_file):
     yscale('log')
     ylabel(r'Density profile [M$_{\odot}$/kpc$^{3}$]')
     xlabel(r'Radius [kpc]')
-    plt.legend(loc=[0.4, 0.6], labelspacing=0.2, handlelength=1.5, handletextpad=0.4, frameon=False)
-    axis([1, 5e2, 1e4, 1e8])
+    plt.legend(loc="lower left", labelspacing=0.2, handlelength=1.5, handletextpad=0.4, frameon=False)
+    axis([1e-1, 5e2, 1e2, 5e8])
     ax.tick_params(direction='in', axis='both', which='both', pad=4.5)
     plt.savefig(output_name, dpi=200)
     return
@@ -174,7 +175,7 @@ def plot_isothermal_fit(xdata, ydata, yerrdata, N0, v0, sigma0, output_name):
     r0 = v0 ** 2 / (4. * np.pi * G * rho0)
     r0 = np.sqrt(r0)  # kpc
 
-    xrange = np.arange(0,3,0.1)
+    xrange = np.arange(-1,3,0.1)
     xrange = 10**xrange
     model = rho_isothermal(xrange / r0)
     model = rho0 * model
@@ -212,7 +213,7 @@ def plot_isothermal_fit(xdata, ydata, yerrdata, N0, v0, sigma0, output_name):
     ylabel(r'Density profile [M$_{\odot}$/kpc$^{3}$]')
     xlabel(r'Radius [kpc]')
     plt.legend(loc=[0.4, 0.8], labelspacing=0.2, handlelength=1.5, handletextpad=0.4, frameon=False)
-    axis([1, 5e2, 1e4, 1e8])
+    axis([1e-1, 5e2, 1e2, 5e8])
     ax.tick_params(direction='in', axis='both', which='both', pad=4.5)
     plt.savefig(output_name, dpi=200)
     return

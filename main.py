@@ -12,19 +12,24 @@ warnings.filterwarnings('ignore', 'The iteration is not making good progress')
 
 if __name__ == '__main__':
 
+    from utils import *
+
+    input_file = args.input
+    output_folder = args.output
+    name = args.name
+
+    # Initial cross section input
+    sigma0 = args.sigma
+    sigma0 = np.log10(sigma0)
 
     # Read initial data
-    #file_name = "../../../FermionDSph/Code/Final_Data/Carina/output_rho.txt"
-    file_name = "./data/Profile_halo_M12_L025N376_sigma_10.txt"
+    x, y, yerr, errorbar = read_data(input_file)
 
     # Output data
-    output_folder = './output/'
-    output_file = output_folder+"Output_M12_L025N376_sigma_10.txt"
-    output_plot_initial = output_folder+"M12_L025N376_sigma_10_initial_fit.png"
-    output_plot_final = output_folder+"M12_L025N376_sigma_10_final_fit.png"
-    output_corner_plot = output_folder+"corner_M12_L025N376_sigma_10.png"
-
-    x, y, yerr, errorbar = read_data(file_name)
+    output_file = output_folder+"Output_"+name+".txt"
+    output_plot_initial = output_folder+name+"_initial_fit.png"
+    output_plot_final = output_folder+name+"_final_fit.png"
+    output_corner_plot = output_folder+"corner_"+name+".png"
 
     # First fit profile based on Isothermal model
     popt, pcov = curve_fit(fit_isothermal_model, x, y)
@@ -35,7 +40,6 @@ if __name__ == '__main__':
     print("r0 = {0:.3f}".format(r0))
 
     # Log10 values of free params
-    sigma0 = 0.0
     v0 = calculate_log_v0(r0, 10**rho0)
     N0 = calculate_log_N0(10**v0, 10**rho0, 10**sigma0)
     print("N0 = {0:.3f}".format(N0))
@@ -59,4 +63,4 @@ if __name__ == '__main__':
     print("======")
     plot_solution(x, 10**y, 10**errorbar, soln, output_plot_final, output_file)
 
-    run_mcmc(soln, x, y, yerr,output_corner_plot)
+    #run_mcmc(soln, x, y, yerr, output_corner_plot)
