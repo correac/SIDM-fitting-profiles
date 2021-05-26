@@ -1,0 +1,13 @@
+# Maximum likelihood estimates 
+# Units: radius [kpc], density [log10Msun/kpc3], mass [log10Msun].
+    r1      1.578
+  rho1      6.828
+    r0      0.138
+  rho0      8.331
+    rs      5.958
+  rhos      6.455
+  c200      7.510
+  M200      9.981
+    N0     31.867
+    v0     14.856
+sigma0      2.768

@@ -4,7 +4,7 @@ from scipy.optimize import fsolve
 from scipy.optimize import root
 from scipy.interpolate import interp1d
 from functions import find_r1, M_isothermal, rho_isothermal, find_nfw, rho_nfw
-from functions import rho_joint_profiles
+from functions import rho_joint_profiles, velocity_dispersion, sigma_vel_weight
 
 def calcM200(R200, z):
     Om = 0.307
@@ -42,7 +42,10 @@ def calc_Ms(rs, rhos):
     mass = 4. * np.pi * np.cumsum(rho * r ** 2 * deltar)
     mass = np.log10(mass)
     interpolate = interp1d(r, mass)
-    Ms = interpolate(rs)
+    if rs > 1e3:
+        Ms = mass[-1]
+    else:
+        Ms = interpolate(rs)
     return Ms
 
 def calculate_additional_params(rs, rhos):
@@ -52,25 +55,25 @@ def calculate_additional_params(rs, rhos):
     c200 = R200 / rs
     return c200, M200
 
-def model_params(N0, v0, sigma0):
+def model_params(N0, v0, ns0, sigma0, w0):
     Msun_in_cgs = 1.98848e33
     kpc_in_cgs = 3.08567758e21
 
     t_age = 7.5  # Gyr - assuming constant halo age
     t_age_cgs = t_age * 1e9 * 365.24 * 24 * 3600  # sec
-    v0_cgs = v0 * 1e5  # cm/s
-    rho0_cgs = N0 / (t_age_cgs * (4. / np.sqrt(np.pi)) * v0_cgs * sigma0)  # g / cm^3
+    sigma_v_weight = sigma_vel_weight(1, ns0, v0, sigma0, w0) * 1e5  # cm/s
+    rho0_cgs = N0 / (t_age_cgs * sigma_v_weight)  # g / cm^3
     rho0 = rho0_cgs * kpc_in_cgs ** 3 / Msun_in_cgs  # Msun / kpc^3
 
     G = 4.3e-6  # kpc km^2 Msun^-1 s^-2
     r0 = v0 ** 2 / (4. * np.pi * G * rho0)
     r0 = np.sqrt(r0)  # kpc
 
-    sol = fsolve(find_r1, 20, args=(rho0_cgs, v0_cgs, sigma0, t_age_cgs))
+    sol = fsolve(find_r1, 20, args=(rho0_cgs, v0, ns0, t_age_cgs, sigma0, w0))
     r1 = sol[0] * r0  # kpc
 
-    M1 = M_isothermal(r1, r0, rho0)  # Msun
-    rho1 = rho0 * rho_isothermal(r1 / r0)  # Msun /kpc^3
+    M1 = M_isothermal(r1, r0, rho0, ns0)  # Msun
+    rho1 = rho0 * rho_isothermal(r1 / r0, ns0)  # Msun /kpc^3
 
     sol = root(find_nfw, [30, np.log10(rho1)], args=(r1, np.log10(rho1), np.log10(M1)),
                method='hybr', tol=1e-4)
@@ -82,24 +85,25 @@ def model_params(N0, v0, sigma0):
 def plot_solution(xdata, ydata, yerrdata, soln, output_name, output_file):
 
     # Extract solution:
-    N0, v0, sigma0 = soln.x
+    N0, v0, ns0, sigma0, w0 = soln.x
     N0 = 10 ** N0
     v0 = 10 ** v0
     sigma0 = 10 ** sigma0
+    w0 = 10 ** w0
 
     # Calculate additional params:
-    r1, rho1, r0, rho0, rs, rhos = model_params(N0, v0, sigma0)
+    r1, rho1, r0, rho0, rs, rhos = model_params(N0, v0, ns0, sigma0, w0)
     c200, M200 = calculate_additional_params(rs, rhos)
 
     # Output best-fit model params to file:
     header = "Maximum likelihood estimates \n"
     header += "Units: radius [kpc], density [log10Msun/kpc3], mass [log10Msun]."
     names = np.array(['r1', 'rho1', 'r0','rho0', 'rs', 'rhos',
-                      'c200', 'M200', 'N0', 'v0', 'sigma0'])
+                      'c200', 'M200', 'N0', 'v0', 'ns0', 'sigma0','w0'])
 
     floats = np.array([r1, np.log10(rho1), r0, np.log10(rho0),
                        rs, np.log10(rhos), c200, M200,
-                       N0, v0, sigma0], dtype="object")
+                       N0, v0, ns0, sigma0, w0], dtype="object")
     ab = np.zeros(names.size, dtype=[('var1', 'U6'), ('var2', float)])
     ab['var1'] = names
     ab['var2'] = floats
@@ -108,9 +112,9 @@ def plot_solution(xdata, ydata, yerrdata, soln, output_name, output_file):
     # Plotting best-fit model:
     xrange = np.arange(-1, 3, 0.1)
     xrange = 10 ** xrange
-    model = rho_joint_profiles(xrange, r1, r0, rho0, rs, rhos)
+    model = rho_joint_profiles(xrange, r1, r0, rho0, rs, rhos, ns0)
     model_nfw = rhos * rho_nfw(xrange / rs)
-    model_iso = rho0 * rho_isothermal(xrange / r0)
+    model_iso = rho0 * rho_isothermal(xrange / r0, ns0)
 
     print("SIDM model:")
     print("r1 = {0:.2f}".format(r1))
@@ -161,14 +165,16 @@ def plot_solution(xdata, ydata, yerrdata, soln, output_name, output_file):
     return
 
 
-def plot_isothermal_fit(xdata, ydata, yerrdata, N0, v0, sigma0, output_name):
+def plot_isothermal_fit(xdata, ydata, yerrdata, N0, v0, ns0, sigma0, w0, output_name, output_veldisp):
     Msun_in_cgs = 1.98848e33
     kpc_in_cgs = 3.08567758e21
 
     t_age = 7.5  # Gyr - assuming constant halo age
     t_age_cgs = t_age * 1e9 * 365.24 * 24 * 3600  # sec
-    v0_cgs = v0 * 1e5  # cm/s
-    rho0_cgs = N0 / (t_age_cgs * (4. / np.sqrt(np.pi)) * v0_cgs * sigma0)  # g / cm^3
+
+    sigma_v_weight = sigma_vel_weight(1, ns0, v0, sigma0, w0) * 1e5  # cm/s
+
+    rho0_cgs = N0 / (t_age_cgs * sigma_v_weight) # g / cm^3
     rho0 = rho0_cgs * kpc_in_cgs ** 3 / Msun_in_cgs  # Msun / kpc^3
 
     G = 4.3e-6  # kpc km^2 Msun^-1 s^-2
@@ -177,7 +183,7 @@ def plot_isothermal_fit(xdata, ydata, yerrdata, N0, v0, sigma0, output_name):
 
     xrange = np.arange(-1,3,0.1)
     xrange = 10**xrange
-    model = rho_isothermal(xrange / r0)
+    model = rho_isothermal(xrange / r0, ns0)
     model = rho0 * model
 
     # Plot parameters
@@ -205,7 +211,6 @@ def plot_isothermal_fit(xdata, ydata, yerrdata, N0, v0, sigma0, output_name):
 
     plot(xdata, ydata, '-', label='Data')
     plt.fill_between(xdata, ydata - yerrdata / 2, ydata + yerrdata / 2, alpha=0.4)
-
     plot(xrange, model, '--', label='Isothermal-profile fit')
 
     xscale('log')
@@ -216,5 +221,23 @@ def plot_isothermal_fit(xdata, ydata, yerrdata, N0, v0, sigma0, output_name):
     axis([1e-1, 5e2, 1e2, 5e8])
     ax.tick_params(direction='in', axis='both', which='both', pad=4.5)
     plt.savefig(output_name, dpi=200)
+
+    #######################
+    # Plot the velocity dispersion
+    figure()
+    ax = plt.subplot(1, 1, 1)
+    grid(True)
+
+    veldisp = v0 * velocity_dispersion(xrange/ r0, ns0)
+    plot(xrange, veldisp, '--', color='tab:orange',label='Isothermal-profile fit')
+
+    xscale('log')
+    ylabel(r'Velocity dispersion [km/s]')
+    xlabel(r'Radius [kpc]')
+    plt.legend(loc=[0.4, 0.8], labelspacing=0.2, handlelength=1.5, handletextpad=0.4, frameon=False)
+    axis([1e-1, 5e2, 0, 80])
+    ax.tick_params(direction='in', axis='both', which='both', pad=4.5)
+    plt.savefig(output_veldisp, dpi=200)
+
     return
 

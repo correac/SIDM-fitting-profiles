@@ -1,6 +1,7 @@
 import numpy as np
 import h5py
 import scipy.stats as stat
+import os
 
 def bin_volumes(radial_bins):
     """Returns the volumes of the bins. """
@@ -31,23 +32,21 @@ def analyse_halo(mass, pos):
     density = (SumMasses / bin_volumes(radial_bins))  # Msun/kpc^3
     return density
 
-def read_data(which_halos,snap,folder,output_path,name,mass_select):
+def read_data(which_halos,siminfo,mass_select):
 
     radial_bins = np.arange(0, 5, 0.1)
     radial_bins = 10**radial_bins
     centers = bin_centers(radial_bins) #kpc
 
-    with h5py.File(folder+"/snapshot_00%02i.hdf5"%snap) as hf:
+    with h5py.File(siminfo.snapshot,"r") as hf:
         a = hf["/Header"].attrs["Scale-factor"]
         mass = hf['PartType1/Masses'][:] * 1e10 #Msun
         pos = hf['PartType1/Coordinates'][:][:] * a
-        vel = hf['PartType1/Velocities'][:][:]
-        unit_length_in_cgs = hf["/Units"].attrs["Unit length in cgs (U_L)"]
 
-    snapshot_file = h5py.File(folder+"/snapshot_00%02i.hdf5"%snap)
-    group_file = h5py.File(folder+"/halo_00%02i.catalog_groups"%snap)
-    particles_file = h5py.File(folder+"/halo_00%02i.catalog_particles"%snap)
-    properties_file = h5py.File(folder+"/halo_00%02i.properties"%snap)
+    snapshot_file = h5py.File(siminfo.snapshot,"r")
+    group_file = h5py.File(siminfo.catalog_groups,"r")
+    particles_file = h5py.File(siminfo.catalog_particles,"r")
+    properties_file = h5py.File(siminfo.subhalo_properties,"r")
 
     m200c = properties_file["Mass_200crit"][:] * 1e10
     m200c[m200c == 0] = 1
@@ -117,19 +116,48 @@ def read_data(which_halos,snap,folder,output_path,name,mass_select):
 
     if mass_select == 10:
         if which_halos == 'subhalos':
-            np.savetxt(output_path+"Profile_subhalos_M10_"+name+".txt", output, fmt="%s")
+            np.savetxt(siminfo.output_path+"Profile_subhalos_M10_"+siminfo.name+".txt", output, fmt="%s")
         else:
-            np.savetxt(output_path+"Profile_halos_M10_"+name+".txt", output, fmt="%s")
+            np.savetxt(siminfo.output_path+"Profile_halos_M10_"+siminfo.name+".txt", output, fmt="%s")
     if mass_select == 11:
         if which_halos == 'subhalos':
-            np.savetxt(output_path+"Profile_subhalos_M11_"+name+".txt", output, fmt="%s")
+            np.savetxt(siminfo.output_path+"Profile_subhalos_M11_"+siminfo.name+".txt", output, fmt="%s")
         else:
-            np.savetxt(output_path+"Profile_halos_M11_"+name+".txt", output, fmt="%s")
+            np.savetxt(siminfo.output_path+"Profile_halos_M11_"+siminfo.name+".txt", output, fmt="%s")
     if mass_select == 12:
         if which_halos == 'subhalos':
-            np.savetxt(output_path+"Profile_subhalos_M12_"+name+".txt", output, fmt="%s")
+            np.savetxt(siminfo.output_path+"Profile_subhalos_M12_"+siminfo.name+".txt", output, fmt="%s")
         else:
-            np.savetxt(output_path+"Profile_halos_M12_"+name+".txt", output, fmt="%s")
+            np.savetxt(siminfo.output_path+"Profile_halos_M12_"+siminfo.name+".txt", output, fmt="%s")
+
+
+
+class SimInfo:
+    def __init__(self, folder, snap, output_path, name):
+        self.name = name
+        self.output_path = output_path
+
+        snapshot = os.path.join(folder,"snapshot_%04i.hdf5"%snap)
+        if os.path.exists(snapshot):
+            self.snapshot = os.path.join(folder,"snapshot_%04i.hdf5"%snap)
+
+        properties = os.path.join(folder, "halo_%04i.properties" % snap)
+        if os.path.exists(properties):
+            self.subhalo_properties = os.path.join(folder, "halo_%04i.properties" % snap)
+        else:
+            self.subhalo_properties = os.path.join(folder, "subhalo_%04i.properties" % snap)
+
+        catalog = os.path.join(folder,"halo_%04i.catalog_groups"%snap)
+        if os.path.exists(catalog):
+            self.catalog_groups = os.path.join(folder,"halo_%04i.catalog_groups"%snap)
+        else:
+            self.catalog_groups = os.path.join(folder,"subhalo_%04i.catalog_groups"%snap)
+
+        catalog_particles = os.path.join(folder, "halo_%04i.catalog_particles" % snap)
+        if os.path.exists(catalog_particles):
+            self.catalog_particles = os.path.join(folder, "halo_%04i.catalog_particles" % snap)
+        else:
+            self.catalog_particles = os.path.join(folder, "subhalo_%04i.catalog_particles" % snap)
 
 
 if __name__ == '__main__':
@@ -137,18 +165,20 @@ if __name__ == '__main__':
     from utils import *
 
     output_path = args.output
-    folder = args.directory
-    snapshot = args.snapshot
+    folder = args.input
+    snapshot = int(args.snapshot)
     name = args.name
 
+    siminfo = SimInfo(folder, snapshot, output_path, name)
+
     mass = 10
-    read_data("halos",snapshot,folder,output_path,name,mass)
-    read_data("subhalos",snapshot,folder,output_path,name,mass)
+    read_data("halos",siminfo,mass)
+    read_data("subhalos",siminfo,mass)
 
     mass = 11
-    read_data("halos",snapshot,folder,output_path,name,mass)
-    read_data("subhalos",snapshot,folder,output_path,name,mass)
+    read_data("halos",siminfo,mass)
+    read_data("subhalos",siminfo,mass)
 
     mass = 12
-    read_data("halos",snapshot,folder,output_path,name,mass)
-    read_data("subhalos",snapshot,folder,output_path,name,mass)
+    read_data("halos",siminfo,mass)
+    read_data("subhalos",siminfo,mass)

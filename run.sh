@@ -2,21 +2,28 @@
 
 # Runs SIDM-fitting scripts using the following variables:
 
-#input="./data/FermionDSph_Carina.txt"
-#output="./output/"
-#name="FermionDSph_Carina"
-#sigma=10
+# To extract SIDM halo profiles:
+#input="/Users/camila/SimulationData/cartesius/L025N376/SigmaVel45"
+#output="./data/L025N376_SigmaVel45/"
+#snapshot="60"
+#name="L025N376_SigmaVel45"
+#python extract_profile_cosmo_box.py -i=$input -s=$snapshot -o=$output -n=$name
 
-#input="./data/Profile_halo_M12_L025N376_sigma_10.txt"
-#output="./output/"
-#name="L025N376_M12_sigma_cte10"
-#sigma=10
 
-input="./data/L025N256_sigma_vel_15/Profile_halos_M12_L025N256.txt"
+# To run sidm-fitting routine:
+# Input / output folders:
+input="./data/L025N376_SigmaVel45/Profile_halos_M10_L025N376_SigmaVel45.txt"
 output="./output/"
-name="L025N256_M12_sigma_15"
-sigma=15
 
-python main.py -i=$input -o=$output -n=$name -s=$sigma
+# Production name
+name="L025N376_SigmaVel45_M10"
+
+# Initial guess
+sigma=10
+w=10
+n=0.0
+
+python main.py -i=$input -o=$output -n=$name -v=$n -d=$sigma -w=$w
+#mpiexec -np 4 python main.py -i=$input -o=$output -n=$name -s=$sigma
 
 

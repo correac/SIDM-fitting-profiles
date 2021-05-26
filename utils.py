@@ -32,23 +32,51 @@ parser.add_argument(
 )
 
 parser.add_argument(
+    "-s",
+    "--snapshot",
+    help="Snapshot number.",
+    type=str,
+    required=False,
+)
+
+parser.add_argument(
     "-n",
     "--name",
     help="Output file names",
     type=str,
-    required=True,
+    required=False,
     default=None,
 )
 
 parser.add_argument(
-    "-s",
+    "-d",
     "--sigma",
     help="Initial guess for cross section",
-    type=int,
-    required=True,
+    type=float,
+    required=False,
+    default=None,
+)
+
+parser.add_argument(
+    "-w",
+    "--wvel",
+    help="Initial guess for velocity in cross section model",
+    type=float,
+    required=False,
+    default=None,
+)
+
+parser.add_argument(
+    "-v",
+    "--variable",
+    help="Variable: inner slope for velocity dispersion profile",
+    type=float,
+    required=False,
     default=None,
 )
 
 args = parser.parse_args()
+
+
 
 
