@@ -1,7 +1,8 @@
 import numpy as np
 from scipy.optimize import fsolve
 from scipy.optimize import root
-from functions import rho_isothermal, M_isothermal, find_r1, find_nfw, rho_joint_profiles, sigma_vel_weight
+from functions import rho_isothermal, M_isothermal, find_r1, \
+    find_nfw, rho_joint_profiles, find_rho0
 
 def sidm_halo_model(r, N0, v0, ns0, sigma0, w0):
     """
@@ -20,18 +21,15 @@ def sidm_halo_model(r, N0, v0, ns0, sigma0, w0):
     kpc_in_cgs = 3.08567758e21
 
     t_age = 7.5 # Gyr - assuming constant halo age
-    t_age_cgs = t_age * 1e9 * 365.24 * 24 * 3600 # sec
-#    v0_cgs = v0 * 1e5 # cm/s
-    sigma_v_weight = sigma_vel_weight(1, ns0, v0, sigma0, w0) * 1e5  # 1/s cm^3/g
-    rho0_cgs = N0 / (t_age_cgs * sigma_v_weight)  # g / cm^3
-#    rho0_cgs = N0 / ( t_age_cgs * (4. / np.sqrt(np.pi)) * v0_cgs * sigma0 ) #g / cm^3
-    rho0 = rho0_cgs * kpc_in_cgs**3 / Msun_in_cgs #Msun / kpc^3
+    rho0 = find_rho0(N0, t_age, v0, ns0, sigma0, w0)
+    t_age_cgs = t_age * 1e9 * 365.24 * 24 * 3600  # sec
+    rho0_cgs = rho0 * Msun_in_cgs / kpc_in_cgs ** 3 # g/cm^3
 
     G = 4.3e-6  # kpc km^2 Msun^-1 s^-2
     r0 = v0**2 / (4. * np.pi * G * rho0)
     r0 = np.sqrt(r0) # kpc
 
-    sol = fsolve(find_r1, 1, args=(rho0_cgs, v0, ns0, t_age_cgs, sigma0, w0))
+    sol = fsolve(find_r1, 20, args=(rho0_cgs, v0, ns0, t_age_cgs, sigma0, w0))
     r1 = sol[0] * r0 # kpc
 
     M1 = M_isothermal(r1, r0, rho0, ns0) # Msun

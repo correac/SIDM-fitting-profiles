@@ -4,7 +4,7 @@ from scipy.optimize import fsolve
 from scipy.optimize import root
 from scipy.interpolate import interp1d
 from functions import find_r1, M_isothermal, rho_isothermal, find_nfw, rho_nfw
-from functions import rho_joint_profiles, velocity_dispersion, sigma_vel_weight
+from functions import rho_joint_profiles, velocity_dispersion, find_rho0, cross_section
 
 def calcM200(R200, z):
     Om = 0.307
@@ -60,10 +60,9 @@ def model_params(N0, v0, ns0, sigma0, w0):
     kpc_in_cgs = 3.08567758e21
 
     t_age = 7.5  # Gyr - assuming constant halo age
+    rho0 = find_rho0(N0, t_age, v0, ns0, sigma0, w0)
     t_age_cgs = t_age * 1e9 * 365.24 * 24 * 3600  # sec
-    sigma_v_weight = sigma_vel_weight(1, ns0, v0, sigma0, w0) * 1e5  # cm/s
-    rho0_cgs = N0 / (t_age_cgs * sigma_v_weight)  # g / cm^3
-    rho0 = rho0_cgs * kpc_in_cgs ** 3 / Msun_in_cgs  # Msun / kpc^3
+    rho0_cgs = rho0 * Msun_in_cgs / kpc_in_cgs ** 3  # g/cm^3
 
     G = 4.3e-6  # kpc km^2 Msun^-1 s^-2
     r0 = v0 ** 2 / (4. * np.pi * G * rho0)
@@ -95,16 +94,25 @@ def plot_solution(xdata, ydata, yerrdata, soln, output_name, output_file):
     r1, rho1, r0, rho0, rs, rhos = model_params(N0, v0, ns0, sigma0, w0)
     c200, M200 = calculate_additional_params(rs, rhos)
 
+    sigma10 = cross_section(10, sigma0, w0)
+    sigma20 = cross_section(20, sigma0, w0)
+    sigma30 = cross_section(30, sigma0, w0)
+    sigma50 = cross_section(50, sigma0, w0)
+
     # Output best-fit model params to file:
     header = "Maximum likelihood estimates \n"
-    header += "Units: radius [kpc], density [log10Msun/kpc3], mass [log10Msun]."
+    header += "Units: radius [kpc], density [log10Msun/kpc3], mass [log10Msun] \n"
+    header += "velocity (v0, w0) [km/s], cross section (sigma0, sigma10/20,30,50) [cm^2/g]. \n"
+    header += "Note that sigma10/20,30,50 refers to the cross section at velocities 10, 20, \n"
+    header += "30 and 50km/s, respectively."
     names = np.array(['r1', 'rho1', 'r0','rho0', 'rs', 'rhos',
-                      'c200', 'M200', 'N0', 'v0', 'ns0', 'sigma0','w0'])
+                      'c200', 'M200', 'N0', 'v0', 'ns0', 'sigma0','w0','sigma10','sigma20','sigma30','sigma50'])
 
     floats = np.array([r1, np.log10(rho1), r0, np.log10(rho0),
                        rs, np.log10(rhos), c200, M200,
-                       N0, v0, ns0, sigma0, w0], dtype="object")
-    ab = np.zeros(names.size, dtype=[('var1', 'U6'), ('var2', float)])
+                       N0, v0, ns0, sigma0, w0, sigma10,
+                       sigma20, sigma30, sigma50], dtype="object")
+    ab = np.zeros(names.size, dtype=[('var1', 'U7'), ('var2', float)])
     ab['var1'] = names
     ab['var2'] = floats
     np.savetxt(output_file, ab, fmt="%6s %10.3f", header=header)
@@ -166,16 +174,9 @@ def plot_solution(xdata, ydata, yerrdata, soln, output_name, output_file):
 
 
 def plot_isothermal_fit(xdata, ydata, yerrdata, N0, v0, ns0, sigma0, w0, output_name, output_veldisp):
-    Msun_in_cgs = 1.98848e33
-    kpc_in_cgs = 3.08567758e21
 
     t_age = 7.5  # Gyr - assuming constant halo age
-    t_age_cgs = t_age * 1e9 * 365.24 * 24 * 3600  # sec
-
-    sigma_v_weight = sigma_vel_weight(1, ns0, v0, sigma0, w0) * 1e5  # cm/s
-
-    rho0_cgs = N0 / (t_age_cgs * sigma_v_weight) # g / cm^3
-    rho0 = rho0_cgs * kpc_in_cgs ** 3 / Msun_in_cgs  # Msun / kpc^3
+    rho0 = find_rho0(N0, t_age, v0, ns0, sigma0, w0) # Msun / kpc^3
 
     G = 4.3e-6  # kpc km^2 Msun^-1 s^-2
     r0 = v0 ** 2 / (4. * np.pi * G * rho0)

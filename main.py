@@ -19,14 +19,14 @@ if __name__ == '__main__':
 
     # Output data
     output_file = output_folder+"Output_"+name+".txt"
-    output_plot_initial = output_folder+name+"_initial_fit.png"
-    output_plot_veldisp = output_folder+name+"_velocity_dispersion.png"
-    output_plot_final = output_folder+name+"_final_fit.png"
+    #output_plot_initial = output_folder+name+"_initial_fit.png"
+    #output_plot_veldisp = output_folder+name+"_velocity_dispersion.png"
+    output_plot_final = output_folder+name+"_fit.png"
     output_corner_plot = output_folder+"corner_"+name+".png"
 
     # Read initial data
-    x, y, yerr, errorbar = read_data(input_file)
-    #x, y, yerr, errorbar = read_single_halo(input_file)
+    #x, y, yerr, errorbar = read_data(input_file)
+    x, y, yerr, errorbar = read_single_halo(input_file)
 
     # Initial cross section input
     sigma0 = args.sigma
@@ -53,8 +53,8 @@ if __name__ == '__main__':
     print("======")
 
     # First fit profile based on Isothermal model
-    plot_isothermal_fit(x, 10**y, 10**errorbar, 10**N0, 10**v0, ns0, 10**sigma0, 10**w0,
-                        output_plot_initial, output_plot_veldisp)
+    # plot_isothermal_fit(x, 10**y, 10**errorbar, 10**N0, 10**v0, ns0, 10**sigma0, 10**w0,
+    #                    output_plot_initial, output_plot_veldisp)
 
 
     np.random.seed(42)
@@ -73,4 +73,4 @@ if __name__ == '__main__':
     print("======")
     plot_solution(x, 10**y, 10**errorbar, soln, output_plot_final, output_file)
 
-    #run_mcmc(soln, x, y, yerr, output_corner_plot)
+    run_mcmc(soln, x, y, yerr, output_corner_plot)

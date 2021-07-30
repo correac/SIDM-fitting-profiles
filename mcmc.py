@@ -8,7 +8,7 @@ from plotter import model_params,calculate_additional_params
 from multiprocessing import Pool
 import time
 
-# If runing with mpi ...
+# If runing with mpi uncomment ...
 #from schwimmbad import MPIPool
 
 def convert_params(theta):
@@ -47,12 +47,11 @@ def log_prior(theta):
     """
     N0, v0, ns0, sigma0, w0 = theta
 
-    if 0 < N0 < 5 and -1. < v0 < 3.5 and -2. < sigma0 < 2. and -0.5 < ns0 < 0.5 and -2. < w0 < 2.:
+    if 0 < N0 < 5 and -1. < v0 < 3.5 and -2. < sigma0 < 4. and -0.5 < ns0 < 0.5 and -2. < w0 < 3.:
         return 0.0
     return -np.inf
 
-#def log_posterior(theta, x, y, yerr):
-def log_posterior(theta):
+def log_posterior(theta, x, y, yerr):
     """
     The natural logarithm of the joint posterior.
 
@@ -65,8 +64,7 @@ def log_posterior(theta):
     lp = log_prior(theta)
     if not np.isfinite(lp):
         return -np.inf
-    return lp + log_likelihood_global(theta)
-    #return lp + log_likelihood(theta, gx, gy, gyerr)
+    return lp + log_likelihood(theta, x, y, yerr)
 
 def log_likelihood(theta, x, y, yerr):
     """
@@ -85,33 +83,8 @@ def log_likelihood(theta, x, y, yerr):
     return log_l
 
 
-def log_likelihood_global(theta):
-    """
-    The natural logarithm of the joint likelihood.
-
-    Args:
-        theta (tuple): a sample containing individual parameter values
-        x (array): values over which the data/model is defined
-        y (array): the set of data
-        yerr (array): the standard deviation of the data points
-    """
-    N0, v0, ns0, sigma0, w0 = theta
-    model = sidm_halo_model(gx, 10**N0, 10**v0, ns0, 10**sigma0, 10**w0)
-    sigma2 = gyerr**2
-    log_l = -0.5 * np.sum((gy - model) ** 2 / sigma2)
-    return log_l
 
 def run_mcmc(soln, x, y, yerr, output_file):
-
-    # Define global variables for better MPI/multiprocessing use
-    global gx
-    global gy
-    global gyerr
-
-    # Setting global variables values
-    gx = x.copy()
-    gy = y.copy()
-    gyerr = yerr.copy()
 
     N0, v0, ns0, sigma0, w0 = soln.x
 
@@ -128,8 +101,7 @@ def run_mcmc(soln, x, y, yerr, output_file):
     #        sys.exit(0)
 
     with Pool() as pool:
-    #    sampler = emcee.EnsembleSampler(nwalkers, ndim, log_posterior, args=(x, y, yerr), pool=pool)
-        sampler = emcee.EnsembleSampler(nwalkers, ndim, log_posterior, pool=pool)
+        sampler = emcee.EnsembleSampler(nwalkers, ndim, log_posterior, args=(x, y, yerr), pool=pool)
         start = time.time()
         sampler.run_mcmc(pos, 500, progress=True)
         end = time.time()
@@ -138,19 +110,38 @@ def run_mcmc(soln, x, y, yerr, output_file):
 
 
     flat_samples = sampler.get_chain(discard=10, thin=15, flat=True)
-    labels = ["c$_{200}$",
-              "log$_{10}$(M$_{200}$/M$_{\odot}$)",
-              "n$_{s}$",
+
+    labels = ["log$_{10}$N$_{0}$",
+              "log$_{10}$v$_{0}$",
+              "n$_{s0}$",
               "log$_{10}$($\sigma_{0}$/m/cm$^{2}$g$^{-1}$)",
               "log$_{10}$($w_{0}$/km/s)"]
 
-    nfw_params = convert_params(flat_samples)
-
     # Make the base corner plot
     figure = corner.corner(
-        nfw_params, labels=labels, quantiles=[0.16, 0.5, 0.84],
-        truths=[c200_ml, M200_ml, ns0, sigma0, w0], show_titles=True, title_kwargs={"fontsize": 12}
+        flat_samples, labels=labels, quantiles=[0.16, 0.5, 0.84],
+        truths=[N0, v0, ns0, sigma0, w0], show_titles=True,
+        title_kwargs={"fontsize": 16}
+        #range=[(0, 50), (9, 12), (-1, 1), (-2, 2), (-2, 3)]
     )
+
+    plt.savefig("flat_samples.png", dpi=200)
+
+    # labels = ["c$_{200}$",
+    #           "log$_{10}$(M$_{200}$/M$_{\odot}$)",
+    #           "n$_{s}$",
+    #           "log$_{10}$($\sigma_{0}$/m/cm$^{2}$g$^{-1}$)",
+    #           "log$_{10}$($w_{0}$/km/s)"]
+    #
+    # nfw_params = convert_params(flat_samples)
+    #
+    # # Make the base corner plot
+    # figure = corner.corner(
+    #     nfw_params, labels=labels, quantiles=[0.16, 0.5, 0.84],
+    #     truths=[c200_ml, M200_ml, ns0, sigma0, w0], show_titles=True,
+    #     title_kwargs={"fontsize": 16},
+    #     range=[(0,50),(9,12),(-1,1),(-2,2),(-2,3)]
+    # )
 
     # Extract the axes
     #axes = np.array(figure.axes).reshape((ndim, ndim))
@@ -169,4 +160,4 @@ def run_mcmc(soln, x, y, yerr, output_file):
     #        ax.axhline(median_value[yi], color="tab:red")
     #        ax.plot(median_value[xi], median_value[yi], "sr")
 
-    plt.savefig(output_file, dpi=200)
+    # plt.savefig(output_file, dpi=200)

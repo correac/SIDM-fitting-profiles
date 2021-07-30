@@ -20,10 +20,7 @@ def bin_centers(radial_bins):
     return 0.5 * (outer + inner)
 
 
-def analyse_halo(mass, pos):
-    # Define radial bins [log scale, kpc units]
-    radial_bins = np.arange(0, 5, 0.1)
-    radial_bins = 10 ** radial_bins
+def analyse_halo(mass, pos, radial_bins):
 
     # Radial coordinates [kpc units]
     r = np.sqrt(np.sum(pos ** 2, axis=1))
@@ -34,7 +31,7 @@ def analyse_halo(mass, pos):
 
 def read_data(which_halos,siminfo,mass_select):
 
-    radial_bins = np.arange(0, 5, 0.1)
+    radial_bins = np.arange(-0.3, 3, 0.1)
     radial_bins = 10**radial_bins
     centers = bin_centers(radial_bins) #kpc
 
@@ -57,12 +54,7 @@ def read_data(which_halos,siminfo,mass_select):
     CoP[:, 2] = properties_file["Zcminpot"][:] * a
     subtype = properties_file["Structuretype"][:]
 
-    if mass_select == 10:
-        select_halos = np.where((m200c >= 9.8) & (m200c <= 10.2))[0]  # >10 star parts
-    if mass_select == 11:
-        select_halos = np.where((m200c >= 10.8) & (m200c <= 11.2))[0]  # >10 star parts
-    if mass_select == 12:
-        select_halos = np.where((m200c >= 11.8) & (m200c <= 12.2))[0]  # >10 star parts
+    select_halos = np.where((m200c >= mass_select-0.2) & (m200c <= mass_select+0.2))[0]  # >10 star parts
 
     # Checking sample
     if which_halos == 'subhalos':
@@ -72,12 +64,13 @@ def read_data(which_halos,siminfo,mass_select):
         select = np.where(subtype[select_halos] == 10)[0]
         select_halos = select_halos[select]
 
-    if len(select_halos) >= 30:
-        select_random = np.random.random_integers(len(select_halos) - 1, size=(30))
-        select_halos = select_halos[select_random]
+    # if len(select_halos) >= 50:
+    #     select_random = np.random.random_integers(len(select_halos) - 1, size=(50))
+    #     select_halos = select_halos[select_random]
 
 
     M200 = np.median(10 ** m200c[select_halos])
+    M200 = np.log10(M200)
     num_halos = len(select_halos)
 
     density_all = np.zeros((len(centers), num_halos))
@@ -85,23 +78,36 @@ def read_data(which_halos,siminfo,mass_select):
     for halo in range(0, num_halos):
         halo_j = select_halos[halo]
 
-        # Grab the start position in the particles file to read from
-        halo_start_position = group_file["Offset"][halo_j]
-        halo_end_position = group_file["Offset"][halo_j + 1]
-        particle_ids_in_halo = particles_file["Particle_IDs"][halo_start_position:halo_end_position]
-        particle_ids_from_snapshot = snapshot_file["PartType1/ParticleIDs"][...]
-
-        _, indices_v, indices_p = np.intersect1d(particle_ids_in_halo,
-                                                 particle_ids_from_snapshot,
-                                                 assume_unique=True,
-                                                 return_indices=True, )
-
-        particles_mass = mass[indices_p].copy()
-        particles_pos = pos[indices_p, :].copy()
+        # # Grab the start position in the particles file to read from
+        # halo_start_position = group_file["Offset"][halo_j]
+        # halo_end_position = group_file["Offset"][halo_j + 1]
+        # particle_ids_in_halo = particles_file["Particle_IDs"][halo_start_position:halo_end_position]
+        # particle_ids_from_snapshot = snapshot_file["PartType1/ParticleIDs"][...]
+        #
+        # _, indices_v, indices_p = np.intersect1d(particle_ids_in_halo,
+        #                                          particle_ids_from_snapshot,
+        #                                          assume_unique=True,
+        #                                          return_indices=True, )
+        #
+        # particles_mass = mass[indices_p].copy()
+        # particles_pos = pos[indices_p, :].copy()
+        particles_mass = mass.copy()
+        particles_pos = pos.copy()
         particles_pos -= CoP[halo_j, :]  # centering
         particles_pos *= 1e3  # kpc
         if len(particles_mass) == 0 :continue
-        density_all[:, halo] = analyse_halo(particles_mass, particles_pos)
+        density_all[:, halo] = analyse_halo(particles_mass, particles_pos, radial_bins)
+
+        # density = analyse_halo(particles_mass, particles_pos, radial_bins)
+        # output = np.zeros((len(centers),2))
+        # output[:, 0] = centers
+        # output[:, 1] = density
+        #
+        # if which_halos == 'subhalos':
+        #     np.savetxt(siminfo.output_path+"Profile_subhalos_M%0.1f"%M200+"_"+siminfo.name+"_%i.txt"%halo, output, fmt="%s")
+        # else:
+        #     np.savetxt(siminfo.output_path+"Profile_halos_M%0.1f"%M200+"_"+siminfo.name+"_%i.txt"%halo, output, fmt="%s")
+
 
     densityM = np.median(density_all[:, :], axis=1)
     densityUp = np.percentile(density_all[:, :], 84, axis=1)
@@ -114,21 +120,11 @@ def read_data(which_halos,siminfo,mass_select):
     output[:,2] = densityLow
     output[:,3] = densityUp
 
-    if mass_select == 10:
-        if which_halos == 'subhalos':
-            np.savetxt(siminfo.output_path+"Profile_subhalos_M10_"+siminfo.name+".txt", output, fmt="%s")
-        else:
-            np.savetxt(siminfo.output_path+"Profile_halos_M10_"+siminfo.name+".txt", output, fmt="%s")
-    if mass_select == 11:
-        if which_halos == 'subhalos':
-            np.savetxt(siminfo.output_path+"Profile_subhalos_M11_"+siminfo.name+".txt", output, fmt="%s")
-        else:
-            np.savetxt(siminfo.output_path+"Profile_halos_M11_"+siminfo.name+".txt", output, fmt="%s")
-    if mass_select == 12:
-        if which_halos == 'subhalos':
-            np.savetxt(siminfo.output_path+"Profile_subhalos_M12_"+siminfo.name+".txt", output, fmt="%s")
-        else:
-            np.savetxt(siminfo.output_path+"Profile_halos_M12_"+siminfo.name+".txt", output, fmt="%s")
+
+    if which_halos == 'subhalos':
+        np.savetxt(siminfo.output_path+"Profile_subhalos_M%0.1f"%mass_select+"_"+siminfo.name+".txt", output, fmt="%s")
+    else:
+        np.savetxt(siminfo.output_path+"Profile_halos_M%0.1f"%mass_select+"_"+siminfo.name+".txt", output, fmt="%s")
 
 
 
@@ -171,14 +167,14 @@ if __name__ == '__main__':
 
     siminfo = SimInfo(folder, snapshot, output_path, name)
 
+    mass = 9.0
+    read_data("halos",siminfo,mass)
+    read_data("subhalos",siminfo,mass)
+
+    mass = 9.5
+    read_data("halos",siminfo,mass)
+    read_data("subhalos",siminfo,mass)
+
     mass = 10
-    read_data("halos",siminfo,mass)
-    read_data("subhalos",siminfo,mass)
-
-    mass = 11
-    read_data("halos",siminfo,mass)
-    read_data("subhalos",siminfo,mass)
-
-    mass = 12
     read_data("halos",siminfo,mass)
     read_data("subhalos",siminfo,mass)

@@ -19,7 +19,6 @@ def diff_isothermal_equation(f,x,n):
     Differential equation that describes the isothermal profile
     """
     y, z = f
-    #n = 0.0
     dfdx = [z,-(n+2)*(1./x)*z-n*(n+1)*(1./x**2)-(1./x**n)*np.exp(y)]
     return dfdx
 
@@ -62,12 +61,12 @@ params = {
     "font.size": 12,
     "text.usetex": True,
     "figure.figsize": (6, 3),
-    "figure.subplot.left": 0.15,
+    "figure.subplot.left": 0.12,
     "figure.subplot.right": 0.95,
     "figure.subplot.bottom": 0.18,
     "figure.subplot.top": 0.95,
-    "figure.subplot.wspace": 0.25,
-    "figure.subplot.hspace": 0.25,
+    "figure.subplot.wspace": 0.35,
+    "figure.subplot.hspace": 0.35,
     "lines.markersize": 6,
     "lines.linewidth": 1.5,
     "figure.max_open_warning": 0,
@@ -92,10 +91,13 @@ plot(x,y2, '-',label='$n=0.1$')
 
 xscale('log')
 yscale('log')
-ylabel(r'Density profile ($\rho/\rho_{0}$)')
+ylabel(r'Modified-isothermal profile ($\rho/\rho_{0}$)')
+xlabel('r/r$_{0}$')
 plt.legend(loc=[0.0,0.1],labelspacing=0.2,handlelength=1.5,handletextpad=0.4,frameon=False,
            columnspacing=0.1,ncol=1)
-#axis([1, 1e3, 1e3, 1e9])
+ax.tick_params(direction='in', axis='both', which='both', pad=4.5)
+
+axis([1e-1, 1e2, 1e-4, 3])
 
 #####################
 ax = plt.subplot(1,2,2)
@@ -112,7 +114,9 @@ plot(x,v2, '-')
 
 xscale('log')
 ylabel(r'Velocity dispersion ($\sigma_v$(r)/$\sigma_{v0}$)')
-#axis([1, 1e3, 1e3, 1e9])
+xlabel('r/r$_{0}$')
+axis([1e-1, 1e2, 0.7, 1.3])
+ax.tick_params(direction='in', axis='both', which='both', pad=4.5)
 
 plt.savefig('Isothermal_model.png',dpi=200)
 

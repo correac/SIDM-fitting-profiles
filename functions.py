@@ -89,38 +89,53 @@ def M_isothermal(r, r0, rho0, ns0):
     """
     Mass enclosed within r1. Calculated using Isothermal profile.
     """
-    ri = np.arange(-3, np.log10(r), 0.05)
-    ri = 10**ri
-    delta_ri = ri[1:]-ri[:-1]
-    delta_ri = np.append(delta_ri,delta_ri[-1])
+    rmin = -3
+    step = 0.05
 
-    rhoi = rho0 * rho_isothermal( ri/r0, ns0)
-    Mint = 4. * np.pi * ri**2 * rhoi * delta_ri
-    Mint = np.sum(Mint)
+    if np.log10(r) > rmin+step:
+        ri = np.arange(rmin, np.log10(r), step)
+        ri = 10**ri
+        delta_ri = ri[1:]-ri[:-1]
+        delta_ri = np.append(delta_ri,delta_ri[-1])
+
+        rhoi = rho0 * rho_isothermal( ri/r0, ns0)
+        Mint = 4. * np.pi * ri**2 * rhoi * delta_ri
+        Mint = np.sum(Mint)
+    else : Mint = 0
     return Mint
 
 def M_nfw(r1, rs, rhos):
     """
     Mass enclosed within r1. Calculated using NFW profile.
     """
-    ri = np.arange(-3, np.log10(r1), 0.05)
-    ri = 10**ri
-    delta_ri = ri[1:]-ri[:-1]
-    delta_ri = np.append(delta_ri,delta_ri[-1])
+    rmin = -3
+    step = 0.05
 
-    rhoi = rhos * rho_nfw( ri/rs )
-    Mint = 4. * np.pi * ri**2 * rhoi * delta_ri
-    Mint = np.sum(Mint)
+    if np.log10(r1) > rmin+step:
+        ri = np.arange(rmin, np.log10(r1), step)
+        ri = 10**ri
+        delta_ri = ri[1:]-ri[:-1]
+        delta_ri = np.append(delta_ri,delta_ri[-1])
+
+        rhoi = rhos * rho_nfw( ri/rs )
+        Mint = 4. * np.pi * ri**2 * rhoi * delta_ri
+        Mint = np.sum(Mint)
+    else: Mint = 0
     return Mint
 
-def integrand(x, sigma0, w0):
+def cross_section(x, sigma0, w0):
+    f = 4 * sigma0 * w0 ** 4 / x ** 4
+    f *= (2 * np.log(1. + 0.5 * x ** 2 / w0 ** 2) - np.log(1. + x ** 2 / w0 ** 2))
+    # f = sigma0 / (1 + x**2 / w0**2)**2
+    return f
+
+def integrand(x, sigma0, w0, v):
     """
     Momentum transfer cross section
     """
-    #f = 4 * sigma0 * w0**4 / x**4
-    #f *= (2 * np.log(1. + 0.5 * x**2 / w0**2) - np.log(1. + x**2 / w0**2))
-    f = sigma0 / (1 + x**2 / w0**2)**2
-    f *= x**3 * np.exp(-x**2/4)
+    sigma = cross_section(x, sigma0, w0)
+    y = x / v
+    f = sigma * y**3 * np.exp(-y**2 / 4.)
     return f
 
 def sigma_vel_weight(x, ns0, v0, sigma0, w0):
@@ -134,10 +149,9 @@ def sigma_vel_weight(x, ns0, v0, sigma0, w0):
     """
     v = velocity_dispersion(x, ns0)
     v *= v0
-    w = w0 / v
     #weight_function = (4. / np.sqrt(np.pi)) * v * sigma0
 
-    integral = quad(integrand, 0, np.inf, args=(sigma0, w))[0]
+    integral = quad(integrand, 0, np.inf, args=(sigma0, w0, v))[0]
 
     weight_function = v / (2 * np.sqrt(np.pi))
     weight_function *= integral
@@ -163,6 +177,16 @@ def find_r1(x, rho0, v0, ns0, t_age, sigma0, w0):
     f = t_age * sigma_v_weight * rho
     f -= 1.0
     return f
+
+def find_rho0(N0, t_age, v0, ns0, sigma0, w0):
+    Msun_in_cgs = 1.98848e33
+    kpc_in_cgs = 3.08567758e21
+
+    t_age_cgs = t_age * 1e9 * 365.24 * 24 * 3600  # sec
+    sigma_v_weight = sigma_vel_weight(1, ns0, v0, sigma0, w0) * 1e5  # 1/s cm^3/g
+    rho0_cgs = N0 / (t_age_cgs * sigma_v_weight)  # g / cm^3
+    rho0 = rho0_cgs * kpc_in_cgs ** 3 / Msun_in_cgs  # Msun / kpc^3
+    return rho0
 
 def find_nfw(x, r1, rho1, M1):
 
