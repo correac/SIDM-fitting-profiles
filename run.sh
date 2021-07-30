@@ -3,17 +3,27 @@
 # Runs SIDM-fitting scripts using the following variables:
 
 # To extract SIDM halo profiles:
-input="/Users/camila/SimulationData/cartesius/L006N188/SigmaConstant00/DMONLY"
-output="./data/L006N188_SigmaConstant00/"
-snapshot="36"
-name="DML006N188_SigmaConstant00"
-python extract_profile_cosmo_box.py -i=$input -s=$snapshot -o=$output -n=$name
+#input="/Users/camila/SimulationData/cartesius/L006N188/SigmaConstant00/DMONLY"
+#output="./data/L006N188_SigmaConstant00/"
+#snapshot="36"
+#name="DML006N188_SigmaConstant00"
+#python extract_profile_cosmo_box.py -i=$input -s=$snapshot -o=$output -n=$name
+#
+#input="/Users/camila/SimulationData/cartesius/L006N188/SigmaConstant01/DMONLY"
+#output="./data/L006N188_SigmaConstant01/"
+#snapshot="36"
+#name="DML006N188_SigmaConstant01"
+#python extract_profile_cosmo_box.py -i=$input -s=$snapshot -o=$output -n=$name
 
-input="/Users/camila/SimulationData/cartesius/L006N188/SigmaConstant01/DMONLY"
-output="./data/L006N188_SigmaConstant01/"
-snapshot="36"
-name="DML006N188_SigmaConstant01"
-python extract_profile_cosmo_box.py -i=$input -s=$snapshot -o=$output -n=$name
+
+sigma=100
+w=30
+n=0
+
+input="./data/L006N188_SigmaVel100/Profile_halos_M10.0_DML006N188_SigmaVel100.txt"
+name="DML006N188_SigmaVel100_M10.0"
+output="./output/"
+python main.py -i=$input -o=$output -n=$name -v=$n -d=$sigma -w=$w
 
 #output="./output/"
 #sigma=10

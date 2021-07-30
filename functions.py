@@ -2,6 +2,9 @@ import numpy as np
 from scipy.integrate import odeint
 from scipy.interpolate import interp1d
 from scipy.integrate import quad
+from scipy.optimize import fsolve
+from scipy.optimize import root
+
 
 def read_single_halo(file):
     data = np.loadtxt(file)
@@ -122,6 +125,21 @@ def M_nfw(r1, rs, rhos):
         Mint = np.sum(Mint)
     else: Mint = 0
     return Mint
+
+def cross_section_weighted(v0, sigma0, w0):
+    """
+    Function : <sigma/m v>(r) / <v(r)>
+    Returns effective velocity-independent momentum-transfer
+    cross-section in the isothermal region.
+    """
+    integral = quad(integrand, 0, np.inf, args=(sigma0, w0, v0))[0]
+
+    sigma_weight = v0 / (2 * np.sqrt(np.pi))
+    sigma_weight *= integral
+
+    v_weight = v0 * 4 / np.sqrt(np.pi)
+    sigma_weight /= v_weight
+    return sigma_weight
 
 def cross_section(x, sigma0, w0):
     f = 4 * sigma0 * w0 ** 4 / x ** 4
@@ -248,3 +266,89 @@ def fit_isothermal_model(xdata, a, b, n):
     ydata = finterpolate(x)
     f = b + ydata
     return f
+
+
+def calc_R200(M200):
+    z = 0
+    Om = 0.307
+    Ol = 1.0 - Om
+    rhocrit = 2.775e11 * 0.6777 ** 2 / (1e3) ** 3  # Msun/kpc^3
+    rhocrit *= (Om * (1. + z) ** 3 + Ol)
+
+    R200 = M200 / ((4. * np.pi / 3.) * 200. * rhocrit )
+    R200 = R200**(1. / 3.) #kpc
+
+    return R200
+
+def calc_rhos(c200):
+    z = 0
+    Om = 0.307
+    Ol = 1.0 - Om
+    rhocrit = 2.775e11 * 0.6777 ** 2 / (1e3) ** 3  # Msun/kpc^3
+    rhocrit *= (Om * (1. + z) ** 3 + Ol)
+
+    Yc200 = np.log(1.+c200) - c200/(1.+c200)
+    rhos = (200./3.) * rhocrit * c200**3 / Yc200 # Msun/kpc^3
+    return rhos
+
+def calc_rs(M200, c200):
+    R200 = calc_R200(M200) #kpc
+    rs = R200 / c200 #kpc
+    return rs
+
+def find_c200_M200(x, r1, rho1, M1):
+
+    rs = calc_rs(10**x[0], 10**x[1]) #kpc
+    rhoNFW = rho_nfw(r1 / rs)
+    if rhoNFW <= 0: rhoNFW = 1.
+
+    rhos = calc_rhos(10**x[1])
+    MNFW = M_nfw(r1, rs, rhos)
+    if MNFW <= 0: MNFW = 1.
+
+    f = [np.log10(rhoNFW) + np.log10(rhos) - rho1,
+         np.log10(MNFW) - M1]
+    return f
+
+def find_nfw_params(N0, v0, ns0, sigma0, w0, log10M200, log10c200):
+
+    Msun_in_cgs = 1.98848e33
+    kpc_in_cgs = 3.08567758e21
+
+    t_age = 7.5 # Gyr - assuming constant halo age
+    rho0 = find_rho0(N0, t_age, v0, ns0, sigma0, w0)
+    t_age_cgs = t_age * 1e9 * 365.24 * 24 * 3600  # sec
+    rho0_cgs = rho0 * Msun_in_cgs / kpc_in_cgs ** 3 # g/cm^3
+
+    G = 4.3e-6  # kpc km^2 Msun^-1 s^-2
+    r0 = v0**2 / (4. * np.pi * G * rho0)
+    r0 = np.sqrt(r0) # kpc
+
+    sol = fsolve(find_r1, 20, args=(rho0_cgs, v0, ns0, t_age_cgs, sigma0, w0))
+    r1 = sol[0] * r0 # kpc
+
+    M1 = M_isothermal(r1, r0, rho0, ns0) # Msun
+    rho1 = rho0 * rho_isothermal( r1/r0, ns0) # Msun /kpc^3
+
+    sol = root(find_c200_M200, [log10M200, log10c200], args=(r1, np.log10(rho1), np.log10(M1)), method='hybr', tol=1e-4)
+
+    log10M200 = sol.x[0]
+    log10c200 = sol.x[1]
+
+    return log10M200, log10c200
+
+
+def c_M_relation(log_M0):
+    """
+    Concentration-mass relation from Correa et al. (2015).
+    This relation is most suitable for Planck cosmology.
+    """
+    z = 0
+    # Best-fit params:
+    alpha = 1.7543 - 0.2766 * (1. + z) + 0.02039 * (1. + z) ** 2
+    beta = 0.2753 + 0.0035 * (1. + z) - 0.3038 * (1. + z) ** 0.0269
+    gamma = -0.01537 + 0.02102 * (1. + z) ** (-0.1475)
+
+    log_10_c200 = alpha + beta * log_M0 * (1. + gamma * log_M0 ** 2)
+    c200 = 10 ** log_10_c200
+    return c200

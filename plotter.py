@@ -5,6 +5,8 @@ from scipy.optimize import root
 from scipy.interpolate import interp1d
 from functions import find_r1, M_isothermal, rho_isothermal, find_nfw, rho_nfw
 from functions import rho_joint_profiles, velocity_dispersion, find_rho0, cross_section
+from functions import find_nfw_params, c_M_relation
+from functions import calc_rs, calc_rhos, cross_section_weighted
 
 def calcM200(R200, z):
     Om = 0.307
@@ -55,7 +57,7 @@ def calculate_additional_params(rs, rhos):
     c200 = R200 / rs
     return c200, M200
 
-def model_params(N0, v0, ns0, sigma0, w0):
+def model_params(N0, v0, ns0, sigma0, w0, log10M200, c200):
     Msun_in_cgs = 1.98848e33
     kpc_in_cgs = 3.08567758e21
 
@@ -71,33 +73,35 @@ def model_params(N0, v0, ns0, sigma0, w0):
     sol = fsolve(find_r1, 20, args=(rho0_cgs, v0, ns0, t_age_cgs, sigma0, w0))
     r1 = sol[0] * r0  # kpc
 
-    M1 = M_isothermal(r1, r0, rho0, ns0)  # Msun
     rho1 = rho0 * rho_isothermal(r1 / r0, ns0)  # Msun /kpc^3
 
-    sol = root(find_nfw, [30, np.log10(rho1)], args=(r1, np.log10(rho1), np.log10(M1)),
-               method='hybr', tol=1e-4)
+    M200 = 10**log10M200
+    rhos = calc_rhos(c200)
+    rs = calc_rs(M200, c200)
 
-    rs = sol.x[0]
-    rhos = 10 ** sol.x[1]
     return r1, rho1, r0, rho0, rs, rhos
+
 
 def plot_solution(xdata, ydata, yerrdata, soln, output_name, output_file):
 
     # Extract solution:
-    N0, v0, ns0, sigma0, w0 = soln.x
+    N0, v0, ns0, sigma0, w0, logM200, logc200 = soln
     N0 = 10 ** N0
     v0 = 10 ** v0
     sigma0 = 10 ** sigma0
     w0 = 10 ** w0
+    c200 = 10** logc200
 
     # Calculate additional params:
-    r1, rho1, r0, rho0, rs, rhos = model_params(N0, v0, ns0, sigma0, w0)
-    c200, M200 = calculate_additional_params(rs, rhos)
+    r1, rho1, r0, rho0, rs, rhos = model_params(N0, v0, ns0, sigma0, w0, logM200, c200)
 
     sigma10 = cross_section(10, sigma0, w0)
     sigma20 = cross_section(20, sigma0, w0)
     sigma30 = cross_section(30, sigma0, w0)
     sigma50 = cross_section(50, sigma0, w0)
+
+    vrel = 4. * v0 / np.sqrt(np.pi)
+    sigma_eff = cross_section_weighted(vrel, sigma0, w0)
 
     # Output best-fit model params to file:
     header = "Maximum likelihood estimates \n"
@@ -106,12 +110,13 @@ def plot_solution(xdata, ydata, yerrdata, soln, output_name, output_file):
     header += "Note that sigma10/20,30,50 refers to the cross section at velocities 10, 20, \n"
     header += "30 and 50km/s, respectively."
     names = np.array(['r1', 'rho1', 'r0','rho0', 'rs', 'rhos',
-                      'c200', 'M200', 'N0', 'v0', 'ns0', 'sigma0','w0','sigma10','sigma20','sigma30','sigma50'])
+                      'c200', 'M200', 'N0', 'v0', 'ns0', 'sigma0','w0','sigma10','sigma20',
+                      'sigma30','sigma50','vrms','sigmavrms'])
 
     floats = np.array([r1, np.log10(rho1), r0, np.log10(rho0),
-                       rs, np.log10(rhos), c200, M200,
+                       rs, np.log10(rhos), c200, logM200,
                        N0, v0, ns0, sigma0, w0, sigma10,
-                       sigma20, sigma30, sigma50], dtype="object")
+                       sigma20, sigma30, sigma50, vrel, sigma_eff], dtype="object")
     ab = np.zeros(names.size, dtype=[('var1', 'U7'), ('var2', float)])
     ab['var1'] = names
     ab['var2'] = floats

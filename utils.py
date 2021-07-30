@@ -7,8 +7,6 @@ See the README for available argument parsers.
 """
 
 import argparse as ap
-#import glob
-#from typing import Optional
 
 parser = ap.ArgumentParser(
     description="""General argument parser for SIDM-Fitting scripts."""
@@ -44,7 +42,7 @@ parser.add_argument(
     "--name",
     help="Output file names",
     type=str,
-    required=False,
+    required=True,
     default=None,
 )
 
@@ -53,7 +51,7 @@ parser.add_argument(
     "--sigma",
     help="Initial guess for cross section",
     type=float,
-    required=False,
+    required=True,
     default=None,
 )
 
@@ -62,7 +60,7 @@ parser.add_argument(
     "--wvel",
     help="Initial guess for velocity in cross section model",
     type=float,
-    required=False,
+    required=True,
     default=None,
 )
 
@@ -71,11 +69,24 @@ parser.add_argument(
     "--variable",
     help="Variable: inner slope for velocity dispersion profile",
     type=float,
+    required=True,
+    default=None,
+)
+
+parser.add_argument(
+    "-hs",
+    "--halosample",
+    help="Running for joint profile or individual halos profile?. Default joint.",
+    type=str,
     required=False,
     default=None,
 )
 
 args = parser.parse_args()
+
+if args.halosample is None:
+    args.halosample = "joint"
+
 
 
 
