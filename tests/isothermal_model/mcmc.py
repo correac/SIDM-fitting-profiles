@@ -204,6 +204,15 @@ def run_mcmc(soln, x, y, yerr, errorbar, name, output_folder):
 
     plt.savefig(output_corner_plot, dpi=200)
 
+    output_data = output_folder + "samples_" + name + ".png"
+    np.savetxt(output_data, flat_samples, fmt="%s")
+
+
+
+def make_mcmc_plots(output_data):
+
+    flat_samples = np.loadtxt(output_data)
+
     labels = ["c$_{200}$",
               "log$_{10}$(M$_{200}$/M$_{\odot}$)",
               "log$_{10}$($\sigma_{0}$/m/cm$^{2}$g$^{-1}$)"]
