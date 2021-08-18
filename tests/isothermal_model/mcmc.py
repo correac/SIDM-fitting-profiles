@@ -181,11 +181,12 @@ def run_mcmc(soln, x, y, yerr, errorbar, name, output_folder):
         multi_time = end - start
         print("Multiprocessing took {0:.1f} minutes".format(multi_time / 60))
 
-    samples = sampler.get_chain(discard=100, thin=1, flat=False)
-    samples_log_prob = sampler.get_log_prob()
+    flat_samples = sampler.get_chain(discard=100, thin=15, flat=True)
+    #samples = sampler.get_chain(discard=100, thin=1, flat=False)
+    #samples_log_prob = sampler.get_log_prob()
 
     # Removing stuck iterations
-    flat_samples = check_chain(samples, samples_log_prob, nwalkers)
+    #flat_samples = check_chain(samples, samples_log_prob, nwalkers)
 
     labels = ["log$_{10}$N$_{0}$",
               "log$_{10}$v$_{0}$",

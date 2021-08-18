@@ -42,7 +42,8 @@ if __name__ == '__main__':
     # Make a guess for initial sigma0
     print("Finding best-initial sigma0..")
     #sigma0 = find_initial_sigma0(rho0, r0, v0, x, y, yerr)
-    sigma0 = calculate_log_sigma0(10**rho0, 10**v0, 10)
+    #sigma0 = calculate_log_sigma0(10**rho0, 10**v0, 10)
+    sigma0 = 0
     N0 = calculate_log_N0(10**rho0, 10**v0, 10**sigma0)
 
     print("======")

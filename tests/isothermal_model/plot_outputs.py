@@ -137,6 +137,7 @@ def read_data(name, num_halos):
 
     return x, y, xerr, yerr
 
+
 def plot_outputs():
 
     # Plot parameters
@@ -163,24 +164,28 @@ def plot_outputs():
     ax = plt.subplot(1, 1, 1)
     grid(True)
 
-    name = 'DML006N188_SigmaConstant10_M10.5'
-    x, y, xerr, yerr = read_data(name, 2)
-    errorbar(x, y ,yerr=yerr, xerr=xerr, fmt='v', ecolor='tab:red',color='tab:red', alpha=0.5, label='DML006N188/Sigma10')
+    # name = 'DML006N188_SigmaConstant10_M10.5'
+    # x, y, xerr, yerr = read_data(name, 2)
+    # errorbar(x, y ,yerr=yerr, xerr=xerr, fmt='v', ecolor='tab:red',color='tab:red', alpha=0.5, label='DML006N188/Sigma10')
+
+    # name = 'DML006N188_SigmaConstant01_M11.0'
+    # x, y, xerr, yerr = read_data2(name, 3)
+    # errorbar(x, y ,yerr=yerr, xerr=xerr, fmt='o', ecolor='tab:green',color='tab:green', alpha=0.5)
 
     name = 'DML006N188_SigmaConstant01_M10.5'
-    x, y, xerr, yerr = read_data(name, 7)
+    x, y, xerr, yerr = read_data(name, 2)
     errorbar(x, y ,yerr=yerr, xerr=xerr, fmt='o', ecolor='tab:blue',color='tab:blue', alpha=0.5)
 
     name = 'DML006N188_SigmaConstant01_M11.0'
-    x, y, xerr, yerr = read_data(name, 4)
+    x, y, xerr, yerr = read_data(name, 2)
     errorbar(x, y ,yerr=yerr, xerr=xerr, fmt='o', ecolor='tab:blue',color='tab:blue', alpha=0.5, label='DML006N188')
 
     name = 'RefL006N188_SigmaConstant01_M10.5'
-    x, y, xerr, yerr = read_data(name, 4)
+    x, y, xerr, yerr = read_data(name, 2)
     errorbar(x, y ,yerr=yerr, xerr=xerr, fmt='v', ecolor='tab:orange',color='tab:orange', alpha=0.5, label='RefL006N188')
 
     name = 'RefL006N188_SigmaConstant01_M11.0'
-    x, y, xerr, yerr = read_data(name, 3)
+    x, y, xerr, yerr = read_data(name, 2)
     errorbar(x, y ,yerr=yerr, xerr=xerr, fmt='v', ecolor='tab:orange',color='tab:orange', alpha=0.5)
 
     plot(np.array([0,150]), np.array([1,1]), '--', lw=1, color='black')

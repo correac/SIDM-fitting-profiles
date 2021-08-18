@@ -22,5 +22,7 @@ plots/
 output/
 tests/c_m_prior/output/
 
+submit.job
+
 error-*
 output-*
