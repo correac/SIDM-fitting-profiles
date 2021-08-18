@@ -204,7 +204,7 @@ def run_mcmc(soln, x, y, yerr, errorbar, name, output_folder):
 
     plt.savefig(output_corner_plot, dpi=200)
 
-    output_data = output_folder + "samples_" + name + ".png"
+    output_data = output_folder + "samples_" + name + ".txt"
     np.savetxt(output_data, flat_samples, fmt="%s")
 
 
