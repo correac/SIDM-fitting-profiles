@@ -1,0 +1,27 @@
+#!/bin/bash
+#SBATCH -J sidm_fits_test
+#SBATCH -o output-%j.out
+#SBATCH -e error-%j.err
+#SBATCH -p short
+#SBATCH -t 01:00:00
+#SBATCH -n 24
+
+source ~/sidmfits_env/bin/activate
+
+END=1
+for ((i=0;i<=END;i++)); do
+  input="../../data/L006N188_SigmaConstant01/Individual_sample/Profile_halos_M11.0_DML006N188_SigmaConstant01_$i.txt"
+  echo Running for Profile_halos_M11.0_DML006N188_SigmaConstant01_$i.txt
+  name="DML006N188_SigmaConstant01_M11.0_$i"
+  output="./output/Individual_sample/"
+  python main.py -i=$input -o=$output -n=$name -hs="Indiviual_sample"
+done
+
+END=1
+for ((i=0;i<=END;i++)); do
+  input="../../data/L006N188_SigmaConstant01/Individual_sample/Profile_halos_M11.0_RefL006N188_SigmaConstant01_$i.txt"
+  echo Running for Profile_halos_M11.0_RefL006N188_SigmaConstant01_$i.txt
+  name="RefL006N188_SigmaConstant01_M11.0_$i"
+  output="./output/Individual_sample/"
+  python main.py -i=$input -o=$output -n=$name -hs="Indiviual_sample"
+done

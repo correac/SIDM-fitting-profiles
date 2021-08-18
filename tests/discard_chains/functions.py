@@ -50,8 +50,7 @@ def velocity_dispersion(x, n):
     return f
 
 def tage(log_M):
-    #tage = 7.657 + log_M * 0.841 - 0.063 * log_M**2
-    tage = 7.5
+    tage = 7.657 + log_M * 0.841 - 0.063 * log_M**2
     return tage
 
 def diff_isothermal_equation(f,x):

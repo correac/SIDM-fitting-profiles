@@ -137,6 +137,29 @@ def likelihood_of_chain(chain):
     lk = np.cumsum(lk) / steps
     return lk
 
+
+def check_chain(samples, samples_log_prob, nwalkers):
+
+    # Removing stuck iterations
+    ll_walkers = np.zeros(nwalkers)
+
+    for k in range(nwalkers):
+        ll_walkers[k] = np.sum(samples_log_prob[:, k]) / len(samples_log_prob[:, 0])
+
+    C = 100.
+    ll_k_diff = ll_walkers[1:] - ll_walkers[:-1]
+    ll_k_diff -= C * (ll_walkers[:-1] - ll_walkers[0]) / np.arange(1, nwalkers)
+    select_chain = np.where(ll_k_diff > 0)[0]
+
+    new_chain = np.arange(0, int(nwalkers / 4))  # let's keep first 64/4 walkers
+    new_chain = np.append(new_chain, select_chain[select_chain > nwalkers / 4])
+
+    new_sample = samples[:, new_chain]
+    s = list(new_sample.shape[1:])
+    s[0] = np.prod(new_sample.shape[:2])
+    new_sample = new_sample.reshape(s)  # flatting..
+    return new_sample
+
 def run_mcmc(soln, x, y, yerr, errorbar, name, output_folder):
 
     global x_global, y_global, yerr_global
@@ -158,10 +181,11 @@ def run_mcmc(soln, x, y, yerr, errorbar, name, output_folder):
         multi_time = end - start
         print("Multiprocessing took {0:.1f} minutes".format(multi_time / 60))
 
-    flat_samples = sampler.get_chain(discard=100, thin=15, flat=True)
+    samples = sampler.get_chain(discard=0, thin=1, flat=False)
+    samples_log_prob = sampler.get_log_prob()
 
-    # Finding stuck iterations
-    # ll_chain = log_likelihood_of_chain(flat_samples)
+    # Removing stuck iterations
+    flat_samples = check_chain(samples, samples_log_prob)
 
     labels = ["log$_{10}$N$_{0}$",
               "log$_{10}$v$_{0}$",

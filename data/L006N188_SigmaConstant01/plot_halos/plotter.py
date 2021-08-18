@@ -19,12 +19,13 @@ def read_data(file):
     return x, y, yerr
 
 for i in range(0,10):
-    output_name = 'Profile_halos_M11.0_DML006N188_%i_comparison.png'%i
+    output_name = 'Profile_halos_M11.0_L006N188_%i_hydro_comparison.png'%i
 
     file = '../Individual_sample/Profile_halos_M11.0_DML006N188_SigmaConstant01_%i.txt'%i
     x, y, yerr = read_data(file)
 
-    file = '../../L006N188_SigmaConstant10/Individual_sample/Profile_halos_M11.0_DML006N188_SigmaConstant10_%i.txt'%i
+    file = '../Individual_sample/Profile_halos_M11.0_RefL006N188_SigmaConstant01_%i.txt'%i
+    #file = '../../L006N188_SigmaConstant10/Individual_sample/Profile_halos_M11.0_DML006N188_SigmaConstant10_%i.txt'%i
     x2, y2, yerr2 = read_data(file)
 
 
@@ -51,10 +52,10 @@ for i in range(0,10):
     ax = plt.subplot(1, 1, 1)
     grid(True)
 
-    plot(x, y, '-', lw=2, color='black', label='Sigma 1')
+    plot(x, y, '-', lw=2, color='black', label='Sigma 1/DMONLY')
     plt.fill_between(x, y - yerr / 2, y + yerr / 2, alpha=0.4, color='grey')
 
-    plot(x2, y2, '-', lw=2, color='tab:blue', label='Sigma 10')
+    plot(x2, y2, '-', lw=2, color='tab:blue', label='Sigma 1/Ref')
     plt.fill_between(x2, y2 - yerr2 / 2, y2 + yerr2 / 2, alpha=0.4, color='tab:blue')
 
     xscale('log')
