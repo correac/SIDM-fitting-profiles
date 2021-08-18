@@ -21,3 +21,6 @@ plots/
 
 output/
 tests/c_m_prior/output/
+
+error-*
+output-*
