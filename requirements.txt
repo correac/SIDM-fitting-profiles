@@ -1,0 +1,6 @@
+corner
+emcee
+h5py
+numpy
+scipy
+matplotlib

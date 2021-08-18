@@ -5,6 +5,9 @@ from scipy.integrate import quad
 from scipy.optimize import fsolve
 from scipy.optimize import root
 
+import warnings
+warnings.filterwarnings('ignore', 'The iteration is not making good progress')
+
 
 def read_single_halo(file):
     data = np.loadtxt(file)
@@ -352,3 +355,42 @@ def c_M_relation(log_M0):
     log_10_c200 = alpha + beta * log_M0 * (1. + gamma * log_M0 ** 2)
     c200 = 10 ** log_10_c200
     return c200
+
+def integrand_w0(x, sigma0, w0, v):
+    """
+    Momentum transfer cross section
+    """
+    f = cross_section(x, sigma0, w0)
+    term = 1./ (1 + 0.5 * x**2/w0**2) - 1/(1. + x**2/w0**2)
+    dfdw0 = 4 * f / w0 + 8 * sigma0 * (w0**2/ x**2) * term / w0
+    y = x / v
+    f = dfdw0 * y**3 * np.exp(-y**2 / 4.)
+    return f
+
+def integrand_sigmaT0(x, sigma0, w0, v):
+    """
+    Momentum transfer cross section
+    """
+    dfdsigma0 = cross_section(x, sigma0, w0) / sigma0
+
+    y = x / v
+    f = dfdsigma0 * y**3 * np.exp(-y**2 / 4.)
+    return f
+
+def cross_section_weighted_error(v0, sigma0, w0, err_sigma0, err_w0):
+    """
+    Function : <sigma/m v>(r) / <v(r)>
+    Returns effective velocity-independent momentum-transfer
+    cross-section in the isothermal region.
+    """
+    integral_sigmaT0 = quad(integrand_sigmaT0, 0, np.inf, args=(sigma0, w0, v0))[0]
+    integral_w0 = quad(integrand_w0, 0, np.inf, args=(sigma0, w0, v0))[0]
+
+    sigma_weight = v0 / (2 * np.sqrt(np.pi))
+    v_weight = v0 * 4 / np.sqrt(np.pi)
+
+    integral_sigmaT0 *= sigma_weight / v_weight
+    integral_w0 *= sigma_weight / v_weight
+
+    error_sigma = np.sqrt(integral_sigmaT0**2 * err_sigma0**2 + integral_w0**2 * err_w0**2)
+    return error_sigma

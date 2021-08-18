@@ -51,7 +51,7 @@ parser.add_argument(
     "--sigma",
     help="Initial guess for cross section",
     type=float,
-    required=True,
+    required=False,
     default=None,
 )
 
@@ -60,7 +60,7 @@ parser.add_argument(
     "--wvel",
     help="Initial guess for velocity in cross section model",
     type=float,
-    required=True,
+    required=False,
     default=None,
 )
 
@@ -69,7 +69,7 @@ parser.add_argument(
     "--variable",
     help="Variable: inner slope for velocity dispersion profile",
     type=float,
-    required=True,
+    required=False,
     default=None,
 )
 

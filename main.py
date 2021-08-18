@@ -83,4 +83,4 @@ if __name__ == '__main__':
 
     plot_solution(x, 10**y, 10**errorbar, sol, output_plot_final, output_file)
 
-    run_mcmc(soln, x, y, yerr, name, output_folder)
+    run_mcmc(soln, x, y, yerr, errorbar, name, output_folder)

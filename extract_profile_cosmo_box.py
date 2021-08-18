@@ -64,9 +64,10 @@ def read_data(which_halos,siminfo,mass_select):
         select = np.where(subtype[select_halos] == 10)[0]
         select_halos = select_halos[select]
 
-    # if len(select_halos) >= 50:
-    #     select_random = np.random.random_integers(len(select_halos) - 1, size=(50))
-    #     select_halos = select_halos[select_random]
+    if len(select_halos) >= 20:
+        #select_random = np.random.random_integers(len(select_halos) - 1, size=(20))
+        #select_halos = select_halos[select_random]
+        select_halos = select_halos[0:20]
 
 
     M200 = np.median(10 ** m200c[select_halos])
@@ -98,15 +99,15 @@ def read_data(which_halos,siminfo,mass_select):
         if len(particles_mass) == 0 :continue
         density_all[:, halo] = analyse_halo(particles_mass, particles_pos, radial_bins)
 
-        # density = analyse_halo(particles_mass, particles_pos, radial_bins)
-        # output = np.zeros((len(centers),2))
-        # output[:, 0] = centers
-        # output[:, 1] = density
-        #
-        # if which_halos == 'subhalos':
-        #     np.savetxt(siminfo.output_path+"Profile_subhalos_M%0.1f"%M200+"_"+siminfo.name+"_%i.txt"%halo, output, fmt="%s")
-        # else:
-        #     np.savetxt(siminfo.output_path+"Profile_halos_M%0.1f"%M200+"_"+siminfo.name+"_%i.txt"%halo, output, fmt="%s")
+        density = analyse_halo(particles_mass, particles_pos, radial_bins)
+        output = np.zeros((len(centers),2))
+        output[:, 0] = centers
+        output[:, 1] = density
+
+        if which_halos == 'subhalos':
+            np.savetxt(siminfo.output_path+"Profile_subhalos_M%0.1f"%mass_select+"_"+siminfo.name+"_%i.txt"%halo, output, fmt="%s")
+        else:
+            np.savetxt(siminfo.output_path+"Profile_halos_M%0.1f"%mass_select+"_"+siminfo.name+"_%i.txt"%halo, output, fmt="%s")
 
 
     densityM = np.median(density_all[:, :], axis=1)
@@ -155,6 +156,10 @@ class SimInfo:
         else:
             self.catalog_particles = os.path.join(folder, "subhalo_%04i.catalog_particles" % snap)
 
+        snapshot_file = h5py.File(self.snapshot, "r")
+        self.softening = float(snapshot_file["/Parameters"].attrs["Gravity:comoving_DM_softening"][:])
+        self.softening *= 1e3 #kpc units
+
 
 if __name__ == '__main__':
     
@@ -167,14 +172,14 @@ if __name__ == '__main__':
 
     siminfo = SimInfo(folder, snapshot, output_path, name)
 
-    mass = 9.0
-    read_data("halos",siminfo,mass)
-    read_data("subhalos",siminfo,mass)
+    # mass = 9.0
+    # read_data("halos",siminfo,mass)
+    # read_data("subhalos",siminfo,mass)
 
-    mass = 9.5
-    read_data("halos",siminfo,mass)
-    read_data("subhalos",siminfo,mass)
+    # mass = 9.5
+    # read_data("halos",siminfo,mass)
+    # read_data("subhalos",siminfo,mass)
 
-    mass = 10
+    mass = 11
     read_data("halos",siminfo,mass)
-    read_data("subhalos",siminfo,mass)
+    # read_data("subhalos",siminfo,mass)

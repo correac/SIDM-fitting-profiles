@@ -1,11 +1,10 @@
 import numpy as np
 from pylab import *
 from scipy.optimize import fsolve
-from scipy.optimize import root
 from scipy.interpolate import interp1d
-from functions import find_r1, M_isothermal, rho_isothermal, find_nfw, rho_nfw
+from functions import find_r1, rho_isothermal, rho_nfw
 from functions import rho_joint_profiles, velocity_dispersion, find_rho0, cross_section
-from functions import find_nfw_params, c_M_relation
+from functions import cross_section_weighted_error
 from functions import calc_rs, calc_rhos, cross_section_weighted
 
 def calcM200(R200, z):
@@ -246,4 +245,38 @@ def plot_isothermal_fit(xdata, ydata, yerrdata, N0, v0, ns0, sigma0, w0, output_
     plt.savefig(output_veldisp, dpi=200)
 
     return
+
+def output_best_fit_params(sol_median, sol_upper, sol_lower, output_file):
+
+    N0, v0, ns0, med_sigma0, med_w0, log10M200, c200 = sol_median
+    vrel = 4. * v0 / np.sqrt(np.pi)
+    med_sigma_eff = cross_section_weighted(v0, med_sigma0, med_w0)
+    med_floats = np.array([c200, log10M200,N0, v0, ns0, med_sigma0, med_w0, vrel, med_sigma_eff], dtype="object")
+
+    N0, v0, ns0, sigma0, w0, log10M200, c200 = sol_upper
+    vrel = 4. * v0 / np.sqrt(np.pi)
+    error_sigma0 = sigma0 - med_sigma0
+    error_w0 = w0 - med_w0
+    sigma_eff = med_sigma_eff + cross_section_weighted_error(v0, sigma0, w0, error_sigma0, error_w0)
+    upp_floats = np.array([c200, log10M200,N0, v0, ns0, sigma0, w0, vrel, sigma_eff], dtype="object")
+
+    N0, v0, ns0, sigma0, w0, log10M200, c200 = sol_lower
+    vrel = 4. * v0 / np.sqrt(np.pi)
+    error_sigma0 = med_sigma0 - sigma0
+    error_w0 = med_w0 - w0
+    sigma_eff = med_sigma_eff - cross_section_weighted_error(v0, sigma0, w0, error_sigma0, error_w0)
+    low_floats = np.array([c200, log10M200,N0, v0, ns0, sigma0, w0, vrel, sigma_eff], dtype="object")
+
+    # Output best-fit model params to file:
+    header = "MCMC bestfit estimates: median, and 84th/16th percentiles. \n"
+    header += "Concentration, halo mass [log10Msun], radius [kpc], number of collisions, \n"
+    header += "velocity (v0, w0) [km/s], cross section (sigmaT, SigmaVrms) [cm^2/g]."
+    names = np.array(['c200', 'M200','N0', 'v0', 'ns0', 'sigma0','w0','vrms','sigmavrms'])
+
+    ab = np.zeros(names.size, dtype=[('var1', 'U7'), ('var2', float), ('var3', float), ('var4', float)])
+    ab['var1'] = names
+    ab['var2'] = med_floats
+    ab['var3'] = upp_floats
+    ab['var4'] = low_floats
+    np.savetxt(output_file, ab, fmt="%8s %10.3f %10.3f %10.3f", header=header)
 

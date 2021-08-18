@@ -46,20 +46,20 @@ n=0
 #output="./output/"
 #python main.py -i=$input -o=$output -n=$name -v=$n -d=$sigma -w=$w
 
-#input="../../data/L006N188_SigmaConstant01/Profile_subhalos_M10.0_DML006N188_SigmaConstant01.txt"
-#name="DML006N188_SigmaConstant01_subM10.0"
-#output="./output/"
-#python main.py -i=$input -o=$output -n=$name -v=$n -d=$sigma -w=$w
+input="../../data/L006N188_SigmaConstant01/Profile_subhalos_M9.0_DML006N188_SigmaConstant01.txt"
+name="DML006N188_SigmaConstant01_M9.0"
+output="./output/"
+python main.py -i=$input -o=$output -n=$name -v=$n -d=$sigma -w=$w
 
 #input="../../data/L006N188_SigmaVel100/Profile_subhalos_M9.0_DML006N188_SigmaVel100.txt"
 #name="DML006N188_SigmaVel100_subM9.0"
 #output="./output/"
 #python main.py -i=$input -o=$output -n=$name -v=$n -d=$sigma -w=$w
 
-input="../../data/L006N188_SigmaVel100/Profile_halos_M9.5_DML006N188_SigmaVel100.txt"
-name="DML006N188_SigmaVel100_M9.5"
-output="./output/"
-python main.py -i=$input -o=$output -n=$name -v=$n -d=$sigma -w=$w
+#input="../../data/L006N188_SigmaVel100/Profile_halos_M9.5_DML006N188_SigmaVel100.txt"
+#name="DML006N188_SigmaVel100_M9.5"
+#output="./output/"
+#python main.py -i=$input -o=$output -n=$name -v=$n -d=$sigma -w=$w
 
 #input="../../data/L006N188_SigmaVel100/Profile_subhalos_M9.5_DML006N188_SigmaVel100.txt"
 #name="DML006N188_SigmaVel100_subM9.5"
