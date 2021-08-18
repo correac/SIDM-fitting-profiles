@@ -3,17 +3,17 @@
 # Runs SIDM-fitting scripts using the following variables:
 
 # To extract SIDM halo profiles:
-input="/Users/camila/SimulationData/cartesius/L006N188/new_production/SigmaConstant10"
-output="./data/L006N188_SigmaConstant10/Individual_sample/"
-snapshot="36"
-name="DML006N188_SigmaConstant10"
-python extract_profile_cosmo_box.py -i=$input -s=$snapshot -o=$output -n=$name
-
-#input="/Users/camila/SimulationData/cartesius/L006N188/SigmaConstant01/Hydro"
+#input="/Users/camila/SimulationData/cartesius/L006N188/new_production/SigmaConstant01"
 #output="./data/L006N188_SigmaConstant01/Individual_sample/"
 #snapshot="36"
-#name="RefL006N188_SigmaConstant01"
+#name="DML006N188_SigmaConstant01"
 #python extract_profile_cosmo_box.py -i=$input -s=$snapshot -o=$output -n=$name
+
+input="/Users/camila/SimulationData/cartesius/L006N188/SigmaConstant01/Hydro"
+output="./data/L006N188_SigmaConstant01/Individual_sample/"
+snapshot="36"
+name="RefL006N188_SigmaConstant01"
+python extract_profile_cosmo_box.py -i=$input -s=$snapshot -o=$output -n=$name
 
 #sigma=10
 #w=30

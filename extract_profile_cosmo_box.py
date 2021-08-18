@@ -180,6 +180,6 @@ if __name__ == '__main__':
     # read_data("halos",siminfo,mass)
     # read_data("subhalos",siminfo,mass)
 
-    mass = 10.5
+    mass = 10.0
     read_data("halos",siminfo,mass)
     # read_data("subhalos",siminfo,mass)

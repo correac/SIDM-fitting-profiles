@@ -173,19 +173,19 @@ def plot_outputs():
     # errorbar(x, y ,yerr=yerr, xerr=xerr, fmt='o', ecolor='tab:green',color='tab:green', alpha=0.5)
 
     name = 'DML006N188_SigmaConstant01_M10.5'
-    x, y, xerr, yerr = read_data(name, 2)
+    x, y, xerr, yerr = read_data(name, 1)
     errorbar(x, y ,yerr=yerr, xerr=xerr, fmt='o', ecolor='tab:blue',color='tab:blue', alpha=0.5)
 
     name = 'DML006N188_SigmaConstant01_M11.0'
-    x, y, xerr, yerr = read_data(name, 2)
+    x, y, xerr, yerr = read_data(name, 1)
     errorbar(x, y ,yerr=yerr, xerr=xerr, fmt='o', ecolor='tab:blue',color='tab:blue', alpha=0.5, label='DML006N188')
 
     name = 'RefL006N188_SigmaConstant01_M10.5'
-    x, y, xerr, yerr = read_data(name, 2)
+    x, y, xerr, yerr = read_data(name, 1)
     errorbar(x, y ,yerr=yerr, xerr=xerr, fmt='v', ecolor='tab:orange',color='tab:orange', alpha=0.5, label='RefL006N188')
 
     name = 'RefL006N188_SigmaConstant01_M11.0'
-    x, y, xerr, yerr = read_data(name, 2)
+    x, y, xerr, yerr = read_data(name, 1)
     errorbar(x, y ,yerr=yerr, xerr=xerr, fmt='v', ecolor='tab:orange',color='tab:orange', alpha=0.5)
 
     plot(np.array([0,150]), np.array([1,1]), '--', lw=1, color='black')
