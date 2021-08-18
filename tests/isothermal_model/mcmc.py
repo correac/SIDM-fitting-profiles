@@ -41,7 +41,7 @@ def log_prior_c200(c0, log10M0):
 
     return w
 
-def log_prior(theta, logM200, logc200):
+def log_prior(theta):
     """
     The natural logarithm of the prior probability.
 
@@ -57,7 +57,7 @@ def log_prior(theta, logM200, logc200):
     # Here we convert from N0 to M200, c200
     if 0 < N0 < 5 and -1. < v0 < 3.5 and -2. < sigma0 < 4.:
 
-        #logM200, logc200 = find_nfw_params(10**N0, 10**v0, 10**sigma0, 10., np.log10(c_M_relation(10.)))
+        logM200, logc200 = find_nfw_params(10**N0, 10**v0, 10**sigma0, 10., np.log10(c_M_relation(10.)))
 
         # Flat priors on all except c200:
         if -2. < sigma0 < 4. and 6 < logM200 < 14 and 0 < logc200 < 2:
@@ -80,12 +80,12 @@ def log_posterior(theta):
         yerr (array): the standard deviation of the data points
     """
     N0, v0, sigma0 = theta
-    logM200, logc200 = find_nfw_params(10 ** N0, 10 ** v0, 10 ** sigma0, 10., np.log10(c_M_relation(10.)))
+    #logM200, logc200 = find_nfw_params(10 ** N0, 10 ** v0, 10 ** sigma0, 10., np.log10(c_M_relation(10.)))
 
-    lp = log_prior(theta, logM200, logc200)
+    lp = log_prior(theta)
     if not np.isfinite(lp):
         return -np.inf
-    return lp + log_likelihood(theta, logM200)
+    return lp + log_likelihood(theta)
 
 def log_ml(theta, x, y, yerr):
     """
@@ -98,14 +98,14 @@ def log_ml(theta, x, y, yerr):
         yerr (array): the standard deviation of the data points
     """
     N0, v0, sigma0 = theta
-    logM200, _ = find_nfw_params(10 ** N0, 10 ** v0, 10 ** sigma0, 10., np.log10(c_M_relation(10.)))
+    #logM200, _ = find_nfw_params(10 ** N0, 10 ** v0, 10 ** sigma0, 10., np.log10(c_M_relation(10.)))
 
-    model = sidm_halo_model(x, 10**N0, 10**v0, 10**sigma0, logM200)
+    model = sidm_halo_model(x, 10**N0, 10**v0, 10**sigma0)
     sigma2 = yerr**2
     log_l = -0.5 * np.sum((y - model) ** 2 / sigma2)
     return log_l
 
-def log_likelihood(theta, logM200):
+def log_likelihood(theta):
     """
     The natural logarithm of the joint likelihood.
 
@@ -116,7 +116,7 @@ def log_likelihood(theta, logM200):
         yerr (array): the standard deviation of the data points
     """
     N0, v0, sigma0 = theta
-    model = sidm_halo_model(x_global, 10**N0, 10**v0, 10**sigma0, logM200)
+    model = sidm_halo_model(x_global, 10**N0, 10**v0, 10**sigma0)
     sigma2 = yerr_global ** 2
     log_l = -0.5 * np.sum((y_global - model) ** 2 / sigma2)
     return log_l

@@ -4,7 +4,7 @@ from scipy.optimize import root
 from functions import rho_isothermal, M_isothermal, find_r1, \
     find_nfw, rho_joint_profiles, find_rho0, tage
 
-def sidm_halo_model(r, N0, v0, sigma0, logM200):
+def sidm_halo_model(r, N0, v0, sigma0):
     """
         Calculates density profile for an SIDM halo
         assuming a truncation between an isothermal profile
@@ -19,7 +19,8 @@ def sidm_halo_model(r, N0, v0, sigma0, logM200):
     Msun_in_cgs = 1.98848e33
     kpc_in_cgs = 3.08567758e21
 
-    t_age = tage(logM200) # Gyr
+    #t_age = tage(logM200) # Gyr
+    t_age = 7.5
     rho0 = find_rho0(N0, t_age, v0, sigma0)
     t_age_cgs = t_age * 1e9 * 365.24 * 24 * 3600  # sec
     rho0_cgs = rho0 * Msun_in_cgs / kpc_in_cgs ** 3 # g/cm^3

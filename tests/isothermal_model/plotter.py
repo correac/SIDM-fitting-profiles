@@ -59,7 +59,8 @@ def model_params(N0, v0, sigma0,  log10M200, c200):
     Msun_in_cgs = 1.98848e33
     kpc_in_cgs = 3.08567758e21
 
-    t_age = tage(log10M200)  # Gyr
+    #t_age = tage(log10M200)  # Gyr
+    t_age = 7.5
     rho0 = find_rho0(N0, t_age, v0, sigma0)
     t_age_cgs = t_age * 1e9 * 365.24 * 24 * 3600  # sec
     rho0_cgs = rho0 * Msun_in_cgs / kpc_in_cgs ** 3  # g/cm^3
