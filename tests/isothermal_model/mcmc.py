@@ -147,7 +147,7 @@ def check_chain(samples, samples_log_prob, nwalkers):
     for k in range(nwalkers):
         ll_walkers[k] = np.sum(samples_log_prob[:, k]) / len(samples_log_prob[:, 0])
 
-    C = 100.
+    C = 10.
     ll_k_diff = ll_walkers[1:] - ll_walkers[:-1]
     ll_k_diff -= C * (ll_walkers[:-1] - ll_walkers[0]) / np.arange(1, nwalkers)
     select_chain = np.where(ll_k_diff > 0)[0]
@@ -170,7 +170,7 @@ def run_mcmc(soln, x, y, yerr, errorbar, name, output_folder):
 
     N0, v0, sigma0 = soln.x
 
-    pos = soln.x + 1e-4 * np.random.randn(64, 3)
+    pos = soln.x + 1e-2 * np.random.randn(64, 3)
     nwalkers, ndim = pos.shape
 
 
@@ -184,6 +184,8 @@ def run_mcmc(soln, x, y, yerr, errorbar, name, output_folder):
 
     samples = sampler.get_chain(discard=100, thin=1, flat=False)
     samples_log_prob = sampler.get_log_prob()
+
+    print("Mean autocorrelation time: {0:.3f} steps".format(np.mean(sampler.get_autocorr_time())))
 
     # Removing stuck iterations
     flat_samples = check_chain(samples, samples_log_prob, nwalkers)
@@ -279,7 +281,7 @@ def quality(N0, v0, sigma0, x, y):
 def find_initial_sigma0(rho0, r0, v0, x, y, yerr):
 
     # Uniform sigma0 priors
-    sigma0_list = np.arange(-1,2,0.25)
+    sigma0_list = np.arange(-1,2,0.5)
 
     # Initial values
     quality_of_fit_prev = 100

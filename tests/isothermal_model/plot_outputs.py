@@ -120,8 +120,6 @@ def read_data(name, num_halos):
         low_sigma0 = np.percentile(10**data[:, 2], 16)
         up_sigma0 = np.percentile(10**data[:, 2], 84)
 
-        print(v0, sigma0)
-
         vpair[:, i] = np.array([v0, up_v0, low_v0])
         sigma_vpair[:, i] = np.array([sigma0, up_sigma0, low_sigma0])
 
@@ -135,7 +133,10 @@ def read_data(name, num_halos):
     x = vpair[0,:]
     y = sigma_vpair[0,:]
 
-    return x, y, xerr, yerr
+    error_range = np.sqrt(yerrl**2+yerrp**2)
+    #select = np.where((error_range<100)&(error_range>1e-3))[0]
+    select = np.where(error_range>1e-3)[0]
+    return x[select], y[select], xerr[:,select], yerr[:,select]
 
 
 def plot_outputs():
@@ -164,39 +165,56 @@ def plot_outputs():
     ax = plt.subplot(1, 1, 1)
     grid(True)
 
-    # name = 'DML006N188_SigmaConstant10_M10.5'
-    # x, y, xerr, yerr = read_data(name, 2)
-    # errorbar(x, y ,yerr=yerr, xerr=xerr, fmt='v', ecolor='tab:red',color='tab:red', alpha=0.5, label='DML006N188/Sigma10')
-
-    # name = 'DML006N188_SigmaConstant01_M11.0'
-    # x, y, xerr, yerr = read_data2(name, 3)
-    # errorbar(x, y ,yerr=yerr, xerr=xerr, fmt='o', ecolor='tab:green',color='tab:green', alpha=0.5)
-
-    name = 'DML006N188_SigmaConstant01_M10.5'
-    x, y, xerr, yerr = read_data(name, 1)
+    name = 'DML006N188_SigmaConstant01_M10.0'
+    x, y, xerr, yerr = read_data(name, 19)
     errorbar(x, y ,yerr=yerr, xerr=xerr, fmt='o', ecolor='tab:blue',color='tab:blue', alpha=0.5)
 
-    name = 'DML006N188_SigmaConstant01_M11.0'
-    x, y, xerr, yerr = read_data(name, 1)
+    name = 'DML006N188_SigmaConstant01_M10.5'
+    x, y, xerr, yerr = read_data(name, 9)
     errorbar(x, y ,yerr=yerr, xerr=xerr, fmt='o', ecolor='tab:blue',color='tab:blue', alpha=0.5, label='DML006N188')
 
-    name = 'RefL006N188_SigmaConstant01_M10.5'
-    x, y, xerr, yerr = read_data(name, 1)
+    name = 'RefL006N188_SigmaConstant01_M10.0'
+    x, y, xerr, yerr = read_data(name, 16)
     errorbar(x, y ,yerr=yerr, xerr=xerr, fmt='v', ecolor='tab:orange',color='tab:orange', alpha=0.5, label='RefL006N188')
 
-    name = 'RefL006N188_SigmaConstant01_M11.0'
-    x, y, xerr, yerr = read_data(name, 1)
+    name = 'RefL006N188_SigmaConstant01_M10.5'
+    x, y, xerr, yerr = read_data(name, 6)
     errorbar(x, y ,yerr=yerr, xerr=xerr, fmt='v', ecolor='tab:orange',color='tab:orange', alpha=0.5)
 
     plot(np.array([0,150]), np.array([1,1]), '--', lw=1, color='black')
 
-    axis([0,150,1e-1,1e2])
+    axis([0,150,1e-1,1e3])
     yscale('log')
     ylabel(r'$\sigma/m_{\chi}$ [cm$^{2}$/g]')
     xlabel(r'$\langle v_{\mathrm{pair}}\rangle$ [km/s]')
     plt.legend(loc="upper left", labelspacing=0.2, handlelength=1.5, handletextpad=0.4, frameon=False)
     ax.tick_params(direction='in', axis='both', which='both', pad=4.5)
     plt.savefig('cross_section.png', dpi=200)
+
+
+    #######################
+    # Do a nice plot
+    figure()
+    ax = plt.subplot(1, 1, 1)
+    grid(True)
+
+    name = 'DML006N188_SigmaConstant10_M10.5'
+    x, y, xerr, yerr = read_data(name, 7)
+    errorbar(x, y ,yerr=yerr, xerr=xerr, fmt='v', ecolor='tab:red',color='tab:red', alpha=0.5, label='DML006N188/Sigma10')
+
+    name = 'DML006N188_SigmaConstant10_M10.0'
+    x, y, xerr, yerr = read_data(name, 8)
+    errorbar(x, y ,yerr=yerr, xerr=xerr, fmt='o', ecolor='tab:red',color='tab:red', alpha=0.5)
+
+    plot(np.array([0,150]), np.array([10,10]), '--', lw=1, color='black')
+
+    axis([0,150,1e-1,1e3])
+    yscale('log')
+    ylabel(r'$\sigma/m_{\chi}$ [cm$^{2}$/g]')
+    xlabel(r'$\langle v_{\mathrm{pair}}\rangle$ [km/s]')
+    plt.legend(loc="upper left", labelspacing=0.2, handlelength=1.5, handletextpad=0.4, frameon=False)
+    ax.tick_params(direction='in', axis='both', which='both', pad=4.5)
+    plt.savefig('cross_section_sigma10.png', dpi=200)
 
     # ##########################
     # # Plot some plot
