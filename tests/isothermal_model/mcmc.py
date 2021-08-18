@@ -273,7 +273,7 @@ def quality(N0, v0, sigma0, x, y):
     logM200, logc200 = find_nfw_params(10 ** N0, 10 ** v0, 10 ** sigma0, 10., np.log10(c_M_relation(10.)))
 
     Nbins = len(x)
-    rho_model = sidm_halo_model(x, 10**N0, 10**v0, 10**sigma0, logM200)
+    rho_model = sidm_halo_model(x, 10**N0, 10**v0, 10**sigma0)
 
     quality = np.sum( (y-rho_model)**2 ) / Nbins
     return quality
