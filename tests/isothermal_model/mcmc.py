@@ -57,14 +57,15 @@ def log_prior(theta):
     # Here we convert from N0 to M200, c200
     if 0 < N0 < 5 and -1. < v0 < 3.5 and -2. < sigma0 < 4.:
 
-        logM200, logc200 = find_nfw_params(10**N0, 10**v0, 10**sigma0, 10., np.log10(c_M_relation(10.)))
+        #logM200, logc200 = find_nfw_params(10**N0, 10**v0, 10**sigma0, 10., np.log10(c_M_relation(10.)))
 
         # Flat priors on all except c200:
-        if -2. < sigma0 < 4. and 6 < logM200 < 14 and 0 < logc200 < 2:
+        #if -2. < sigma0 < 4. and 6 < logM200 < 14 and 0 < logc200 < 2:
 
             # Prior distribution on c200:
-            c200 = 10 ** logc200
-            log_prior = log_prior_c200(c200, logM200)
+        #    c200 = 10 ** logc200
+        #    log_prior = log_prior_c200(c200, logM200)
+        log_prior = 0
 
 
     return log_prior
@@ -142,20 +143,21 @@ def likelihood_of_chain(chain):
 def check_chain(samples, samples_log_prob, nwalkers):
 
     # Removing stuck iterations
-    ll_walkers = np.zeros(nwalkers)
+    ll_walkers = np.sum(samples_log_prob[:, :], axis=0) / len(samples_log_prob[:, 0])
 
-    for k in range(nwalkers):
-        ll_walkers[k] = np.sum(samples_log_prob[:, k]) / len(samples_log_prob[:, 0])
+    index = np.argsort(ll_walkers)
+    ll_walkers = ll_walkers[index]
 
-    C = 10.
+    C = 100.
     ll_k_diff = ll_walkers[1:] - ll_walkers[:-1]
-    ll_k_diff -= C * (ll_walkers[:-1] - ll_walkers[0]) / np.arange(1, nwalkers)
-    select_chain = np.where(ll_k_diff > 0)[0]
+    ll_k_diff -= C * (ll_walkers[1:] - ll_walkers[0]) / np.arange(1, nwalkers)
+    select_chain = np.where(ll_k_diff < 0)[0]  # select where difference is smaller than average difference
 
     new_chain = np.arange(0, int(nwalkers / 4))  # let's keep first 64/4 walkers
     new_chain = np.append(new_chain, select_chain[select_chain > nwalkers / 4])
 
-    new_sample = samples[:, new_chain]
+    new_sample = samples[:, index[new_chain]]
+
     s = list(new_sample.shape[1:])
     s[0] = np.prod(new_sample.shape[:2])
     new_sample = new_sample.reshape(s)  # flatting..
@@ -177,15 +179,15 @@ def run_mcmc(soln, x, y, yerr, errorbar, name, output_folder):
     with Pool() as pool:
         sampler = emcee.EnsembleSampler(nwalkers, ndim, log_posterior, pool=pool)
         start = time.time()
-        sampler.run_mcmc(pos, 500, progress=True)
+        sampler.run_mcmc(pos, 1000, progress=True)
         end = time.time()
         multi_time = end - start
         print("Multiprocessing took {0:.1f} minutes".format(multi_time / 60))
 
-    samples = sampler.get_chain(discard=100, thin=1, flat=False)
+    samples = sampler.get_chain(discard=200, thin=1, flat=False)
     samples_log_prob = sampler.get_log_prob()
 
-    print("Mean autocorrelation time: {0:.3f} steps".format(np.mean(sampler.get_autocorr_time())))
+    print("Mean autocorrelation time: {0:.3f} steps".format(np.mean(sampler.get_autocorr_time(quiet=True))))
 
     # Removing stuck iterations
     flat_samples = check_chain(samples, samples_log_prob, nwalkers)
