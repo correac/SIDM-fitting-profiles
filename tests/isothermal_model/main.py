@@ -19,7 +19,6 @@ if __name__ == '__main__':
     name = args.name
     op_sample = args.halosample
 
-
     # Output data
     output_file = output_folder+"Output_"+name+".txt"
     output_plot_final = output_folder+"Initial_fit"+name+".png"

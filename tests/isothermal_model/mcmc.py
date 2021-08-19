@@ -67,7 +67,6 @@ def log_prior(theta):
         #    log_prior = log_prior_c200(c200, logM200)
         log_prior = 0
 
-
     return log_prior
 
 def log_posterior(theta):
@@ -81,7 +80,6 @@ def log_posterior(theta):
         yerr (array): the standard deviation of the data points
     """
     N0, v0, sigma0 = theta
-    #logM200, logc200 = find_nfw_params(10 ** N0, 10 ** v0, 10 ** sigma0, 10., np.log10(c_M_relation(10.)))
 
     lp = log_prior(theta)
     if not np.isfinite(lp):
@@ -100,7 +98,6 @@ def log_ml(theta, x, y, yerr):
         yerr (array): the standard deviation of the data points
     """
     N0, v0, sigma0 = theta
-    #logM200, _ = find_nfw_params(10 ** N0, 10 ** v0, 10 ** sigma0, 10., np.log10(c_M_relation(10.)))
 
     model = sidm_halo_model(x, 10**N0, 10**v0, 10**sigma0)
     sigma2 = yerr**2
@@ -132,9 +129,7 @@ def likelihood_of_chain(chain):
     for k in range(0, steps):
 
         N0, v0, sigma0 = chain[k,:]
-        logM200, _ = find_nfw_params(10 ** N0, 10 ** v0, 10 ** sigma0, 10., np.log10(c_M_relation(10.)))
-
-        lk[k] = log_likelihood(theta[k,:], logM200)
+        lk[k] = log_likelihood(theta[k,:])
 
     lk = np.cumsum(lk) / steps
     return lk
