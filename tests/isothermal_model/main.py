@@ -39,41 +39,44 @@ if __name__ == '__main__':
     v0 = calculate_log_v0(r0, 10**rho0)
 
     # Make a guess for initial sigma0
-    print("Finding best-initial sigma0..")
+    # print("Finding best-initial sigma0..")
     #sigma0 = find_initial_sigma0(rho0, r0, v0, x, y, yerr)
     #sigma0 = calculate_log_sigma0(10**rho0, 10**v0, 10)
     sigma0 = 0
     N0 = calculate_log_N0(10**rho0, 10**v0, 10**sigma0)
 
-    print("======")
-    print("Initial estimates:")
-    print("rho0 = {0:.3f}".format(rho0))
-    print("r0 = {0:.3f}".format(r0))
-    print("N0 = {0:.3f}".format(N0))
-    print("sigma0 = {0:.3f}".format(10**sigma0))
-    print("v0 = {0:.3f}".format(v0))
-    print("======")
+    # print("======")
+    # print("Initial estimates:")
+    # print("rho0 = {0:.3f}".format(rho0))
+    # print("r0 = {0:.3f}".format(r0))
+    # print("N0 = {0:.3f}".format(N0))
+    # print("sigma0 = {0:.3f}".format(10**sigma0))
+    # print("v0 = {0:.3f}".format(v0))
+    # print("======")
+    #
+    # np.random.seed(42)
+    # nll = lambda *args: -log_ml(*args)
+    # initial = np.array([N0, v0, sigma0])
+    # soln = minimize(nll, initial, args=(x, y, yerr))
+    # N0_ml, v0_ml, sigma0_ml = soln.x
 
-    np.random.seed(42)
-    nll = lambda *args: -log_ml(*args)
-    initial = np.array([N0, v0, sigma0])
-    soln = minimize(nll, initial, args=(x, y, yerr))
-    N0_ml, v0_ml, sigma0_ml = soln.x
+    # logM200, logc200 = find_nfw_params(10 ** N0_ml, 10 ** v0_ml, 10 ** sigma0_ml,
+    #                                    10., np.log10(c_M_relation(10.)))
+    # sol = np.array([N0_ml, v0_ml, sigma0_ml, logM200, logc200])
 
-    logM200, logc200 = find_nfw_params(10 ** N0_ml, 10 ** v0_ml, 10 ** sigma0_ml,
-                                       10., np.log10(c_M_relation(10.)))
-    sol = np.array([N0_ml, v0_ml, sigma0_ml, logM200, logc200])
 
-    print("======")
-    print("Maximum likelihood estimates:")
-    print("N0 = {0:.3f}".format(N0_ml))
-    print("v0 = {0:.3f}".format(v0_ml))
-    print("sigma0 = {0:.3f}".format(10**sigma0_ml))
-    print("M200 = {0:.3f}".format(logM200))
-    print("c200 = {0:.3f}".format(10**logc200))
-    print("======")
+    # print("======")
+    # print("Maximum likelihood estimates:")
+    # print("N0 = {0:.3f}".format(N0_ml))
+    # print("v0 = {0:.3f}".format(v0_ml))
+    # print("sigma0 = {0:.3f}".format(10**sigma0_ml))
+    # print("M200 = {0:.3f}".format(logM200))
+    # print("c200 = {0:.3f}".format(10**logc200))
+    # print("======")
+    #
+    # plot_solution(x, 10**y, 10**errorbar, sol, output_plot_final, output_file)
 
-    plot_solution(x, 10**y, 10**errorbar, sol, output_plot_final, output_file)
+    soln = np.array([N0, v0, sigma0])
 
     print("Running mcmc sampler..")
     run_mcmc(soln, x, y, yerr, errorbar, name, output_folder)

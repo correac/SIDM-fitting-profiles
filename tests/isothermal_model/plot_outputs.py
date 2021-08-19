@@ -166,20 +166,24 @@ def plot_outputs():
     grid(True)
 
     name = 'DML006N188_SigmaConstant01_M10.0'
-    x, y, xerr, yerr = read_data(name, 19)
-    errorbar(x, y ,yerr=yerr, xerr=xerr, fmt='o', ecolor='tab:blue',color='tab:blue', alpha=0.5)
+    x, y, xerr, yerr = read_data(name, 10)
+    errorbar(x, y ,yerr=yerr, fmt='o', ecolor='tab:blue',color='tab:blue', alpha=0.5)
+    #errorbar(x, y ,yerr=yerr, xerr=xerr, fmt='o', ecolor='tab:blue',color='tab:blue', alpha=0.5)
 
     name = 'DML006N188_SigmaConstant01_M10.5'
-    x, y, xerr, yerr = read_data(name, 9)
-    errorbar(x, y ,yerr=yerr, xerr=xerr, fmt='o', ecolor='tab:blue',color='tab:blue', alpha=0.5, label='DML006N188')
+    x, y, xerr, yerr = read_data(name, 8)
+    errorbar(x, y ,yerr=yerr, fmt='o', ecolor='tab:blue',color='tab:blue', alpha=0.5, label='DML006N188')
+    #errorbar(x, y ,yerr=yerr, xerr=xerr, fmt='o', ecolor='tab:blue',color='tab:blue', alpha=0.5, label='DML006N188')
 
     name = 'RefL006N188_SigmaConstant01_M10.0'
-    x, y, xerr, yerr = read_data(name, 16)
-    errorbar(x, y ,yerr=yerr, xerr=xerr, fmt='v', ecolor='tab:orange',color='tab:orange', alpha=0.5, label='RefL006N188')
+    x, y, xerr, yerr = read_data(name, 10)
+    errorbar(x, y ,yerr=yerr, fmt='v', ecolor='tab:orange',color='tab:orange', alpha=0.5, label='RefL006N188')
+    #errorbar(x, y ,yerr=yerr, xerr=xerr, fmt='v', ecolor='tab:orange',color='tab:orange', alpha=0.5, label='RefL006N188')
 
     name = 'RefL006N188_SigmaConstant01_M10.5'
     x, y, xerr, yerr = read_data(name, 6)
-    errorbar(x, y ,yerr=yerr, xerr=xerr, fmt='v', ecolor='tab:orange',color='tab:orange', alpha=0.5)
+    errorbar(x, y ,yerr=yerr, fmt='v', ecolor='tab:orange',color='tab:orange', alpha=0.5)
+    #errorbar(x, y ,yerr=yerr, xerr=xerr, fmt='v', ecolor='tab:orange',color='tab:orange', alpha=0.5)
 
     plot(np.array([0,150]), np.array([1,1]), '--', lw=1, color='black')
 
@@ -198,13 +202,15 @@ def plot_outputs():
     ax = plt.subplot(1, 1, 1)
     grid(True)
 
-    name = 'DML006N188_SigmaConstant10_M10.5'
-    x, y, xerr, yerr = read_data(name, 7)
-    errorbar(x, y ,yerr=yerr, xerr=xerr, fmt='v', ecolor='tab:red',color='tab:red', alpha=0.5, label='DML006N188/Sigma10')
-
     name = 'DML006N188_SigmaConstant10_M10.0'
-    x, y, xerr, yerr = read_data(name, 8)
-    errorbar(x, y ,yerr=yerr, xerr=xerr, fmt='o', ecolor='tab:red',color='tab:red', alpha=0.5)
+    x, y, xerr, yerr = read_data(name, 9)
+    #errorbar(x, y ,yerr=yerr, xerr=xerr, fmt='o', ecolor='tab:red',color='tab:red', alpha=0.5)
+    errorbar(x, y ,yerr=yerr, fmt='o', ecolor='tab:red',color='tab:red', alpha=0.5)
+
+    name = 'DML006N188_SigmaConstant10_M10.5'
+    x, y, xerr, yerr = read_data(name, 4)
+    #errorbar(x, y ,yerr=yerr, xerr=xerr, fmt='v', ecolor='tab:red',color='tab:red', alpha=0.5, label='DML006N188/Sigma10')
+    errorbar(x, y ,yerr=yerr, fmt='v', ecolor='tab:red',color='tab:red', alpha=0.5, label='DML006N188/Sigma10')
 
     plot(np.array([0,150]), np.array([10,10]), '--', lw=1, color='black')
 

@@ -165,11 +165,24 @@ def run_mcmc(soln, x, y, yerr, errorbar, name, output_folder):
 
     output_corner_plot = output_folder + "corner_" + name + ".png"
 
-    N0, v0, sigma0 = soln.x
+    #N0, v0, sigma0 = soln.x
 
-    pos = soln.x + 1e-4 * np.random.randn(64, 3)
+    #pos = soln.x + 1e-4 * np.random.randn(64, 3)
+    pos = soln + np.random.randn(64, 3)
     nwalkers, ndim = pos.shape
 
+    with Pool() as pool:
+        sampler = emcee.EnsembleSampler(nwalkers, ndim, log_posterior, pool=pool)
+        start = time.time()
+        sampler.run_mcmc(pos, 500, progress=True)
+        end = time.time()
+        multi_time = end - start
+        print("Multiprocessing took {0:.1f} minutes".format(multi_time / 60))
+
+    samples = sampler.get_chain(discard=100, thin=1, flat=True)
+    soln = np.array([np.median(samples[:, 0]), np.median(samples[:, 1]), np.median(samples[:, 2])])
+
+    pos = soln + 1e-4 * np.random.randn(64, 3)
 
     with Pool() as pool:
         sampler = emcee.EnsembleSampler(nwalkers, ndim, log_posterior, pool=pool)
@@ -207,62 +220,6 @@ def run_mcmc(soln, x, y, yerr, errorbar, name, output_folder):
     output_data = output_folder + "samples_" + name + ".txt"
     np.savetxt(output_data, flat_samples, fmt="%s")
 
-
-
-def make_mcmc_plots(output_data):
-
-    flat_samples = np.loadtxt(output_data)
-
-    labels = ["c$_{200}$",
-              "log$_{10}$(M$_{200}$/M$_{\odot}$)",
-              "log$_{10}$($\sigma_{0}$/m/cm$^{2}$g$^{-1}$)"]
-
-    nfw_params = convert_params(flat_samples)
-
-    c200 = np.median(nfw_params[:, 0])
-    logM200 = np.median(nfw_params[:, 1])
-    log10sigma0 = np.median(nfw_params[:, 2])
-    log10N0 = np.median(flat_samples[:, 0])
-    log10v0 = np.median(flat_samples[:, 1])
-
-    mcmc_sol = np.array([log10N0, log10v0, log10sigma0, logM200, np.log10(c200)])
-    output_file = output_folder + "MCMC_Output_" + name + ".txt"
-    output_fig = output_folder + "MCMC_fit_" + name + ".png"
-    plot_solution(x, 10**y, 10**errorbar, mcmc_sol, output_fig, output_file)
-
-    # Make the base corner plot
-    figure = corner.corner(
-        nfw_params, labels=labels, quantiles=[0.16, 0.84],
-        truths=[c200, logM200, log10sigma0], show_titles=True,
-        title_kwargs={"fontsize": 16}
-    )
-
-    output_corner_plot = output_folder + "corner_nfw_" + name + ".png"
-    plt.savefig(output_corner_plot, dpi=200)
-
-    # Output bestfit paramter range
-    sol_median = np.array(
-        [10 ** log10N0, 10 ** log10v0, 10 ** log10sigma0, logM200, c200])
-
-    log10N0 = np.percentile(flat_samples[:, 0], 84)
-    log10v0 = np.percentile(flat_samples[:, 1], 84)
-    log10M200 = np.percentile(nfw_params[:, 1], 84)
-    c200 = np.percentile(nfw_params[:, 0], 84)
-    log10sigma0 = np.percentile(flat_samples[:, 2], 84)
-    sol_upper = np.array(
-        [10 ** log10N0, 10 ** log10v0, 10 ** log10sigma0, log10M200, c200])
-
-    log10N0 = np.percentile(flat_samples[:, 0], 16)
-    log10v0 = np.percentile(flat_samples[:, 1], 16)
-    log10sigma0 = np.percentile(flat_samples[:, 2], 16)
-    log10M200 = np.percentile(nfw_params[:, 1], 16)
-    c200 = np.percentile(nfw_params[:, 0], 16)
-    sol_lower = np.array(
-        [10 ** log10N0, 10 ** log10v0, 10 ** log10sigma0, log10M200, c200])
-
-    output_file = output_folder + "MCMC_parameter_range_" + name + ".txt"
-
-    output_best_fit_params(sol_median, sol_upper, sol_lower, output_file)
 
 
 def quality(N0, v0, sigma0, x, y):
