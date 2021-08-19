@@ -187,7 +187,8 @@ if __name__ == '__main__':
     # Make a guess for initial sigma0
     print("Finding best-initial sigma0..")
     #sigma0 = find_initial_sigma0(rho0, r0, v0, x, y, yerr)
-    sigma0 = calculate_log_sigma0(10**rho0, 10**v0, 10)
+    #sigma0 = calculate_log_sigma0(10**rho0, 10**v0, 10)
+    sigma0 = 0
     N0 = calculate_log_N0(10**rho0, 10**v0, 10**sigma0)
 
     print("======")
@@ -227,6 +228,8 @@ if __name__ == '__main__':
     samples = sampler.get_chain(discard=0, thin=1, flat=False)
 
     samples_log_prob = sampler.get_log_prob()
+
+    print("Mean autocorrelation time: {0:.3f} steps".format(np.mean(sampler.get_autocorr_time())))
 
     # Removing stuck iterations
     ll_walkers = np.zeros(nwalkers)

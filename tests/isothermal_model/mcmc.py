@@ -170,7 +170,7 @@ def run_mcmc(soln, x, y, yerr, errorbar, name, output_folder):
 
     N0, v0, sigma0 = soln.x
 
-    pos = soln.x + 1e-2 * np.random.randn(64, 3)
+    pos = soln.x + 1e-4 * np.random.randn(64, 3)
     nwalkers, ndim = pos.shape
 
 
