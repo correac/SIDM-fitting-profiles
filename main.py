@@ -43,7 +43,7 @@ if __name__ == '__main__':
     # Log10 values of free params
     w0 = np.log10(30.)  # log10
     v0 = calculate_log_v0(r0, 10**rho0)
-    sigma0 = 10.0
+    sigma0 = np.log10(10.0)
     #sigma0 = calculate_log_sigma0(10 ** rho0, 10 ** v0, 1)
     N0 = calculate_log_N0(10**rho0, 10**v0, ns0, 10**sigma0, 10**w0)
 

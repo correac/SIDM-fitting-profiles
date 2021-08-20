@@ -171,7 +171,7 @@ def plot_outputs():
     grid(True)
 
     name = 'DML006N188_SigmaConstant01_M10.0'
-    x, y, xerr, yerr = read_data(name, 2)
+    x, y, xerr, yerr = read_data(name, 1)
     #errorbar(x, y ,yerr=yerr, fmt='o', ecolor='tab:blue',color='tab:blue', alpha=0.5)
     errorbar(x, y ,yerr=yerr, xerr=xerr, fmt='o', ecolor='tab:blue',color='tab:blue', alpha=0.5)
 
