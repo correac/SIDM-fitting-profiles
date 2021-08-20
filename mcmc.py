@@ -140,12 +140,12 @@ def run_mcmc(soln, x, y, yerr, errorbar, name, output_folder):
     with Pool() as pool:
         sampler = emcee.EnsembleSampler(nwalkers, ndim, log_posterior, args=(x, y, yerr), pool=pool)
         start = time.time()
-        sampler.run_mcmc(pos, 500, progress=True)
+        sampler.run_mcmc(pos, 1000, progress=True)
         end = time.time()
         multi_time = end - start
         print("Multiprocessing took {0:.1f} minutes".format(multi_time / 60))
 
-    samples = sampler.get_chain(discard=100, thin=1, flat=False)
+    samples = sampler.get_chain(discard=200, thin=1, flat=False)
     samples_log_prob = sampler.get_log_prob()
 
     print("Mean autocorrelation time: {0:.3f} steps".format(np.mean(sampler.get_autocorr_time(quiet=True))))
@@ -198,7 +198,7 @@ def run_mcmc(soln, x, y, yerr, errorbar, name, output_folder):
     logM200, logc200 = find_nfw_params(10 ** N0, 10 ** v0, ns0, 10 ** sigma0, 10 ** w0, 10.,
                                        np.log10(c_M_relation(10.)))
 
-    mcmc_sol = np.array([N0, v0, ns0, sigma0,w0, logM200, logc200])
+    mcmc_sol = np.array([N0, v0, ns0, sigma0, w0, logM200, logc200])
 
     output_fig = output_folder + "MCMC_fit_" + name + ".png"
     output_file = output_folder + "MCMC_Output_" + name + ".txt"

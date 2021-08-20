@@ -21,7 +21,7 @@ def read_single_halo(file):
     x = data[:,0]
     y = np.log10(data[:,1])
     yerr = np.ones(len(x)) * 0.1
-    errorbar = np.ones(len(x)) * 0.1
+    errorbar = np.ones(len(x))
 
     return x, y, yerr, errorbar
 
