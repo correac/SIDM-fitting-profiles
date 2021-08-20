@@ -166,12 +166,12 @@ def plot_outputs():
     grid(True)
 
     name = 'DML006N188_SigmaConstant01_M10.0'
-    x, y, xerr, yerr = read_data(name, 8)
+    x, y, xerr, yerr = read_data(name, 9)
     #errorbar(x, y ,yerr=yerr, fmt='o', ecolor='tab:blue',color='tab:blue', alpha=0.5)
     errorbar(x, y ,yerr=yerr, xerr=xerr, fmt='o', ecolor='tab:blue',color='tab:blue', alpha=0.5)
 
     name = 'DML006N188_SigmaConstant01_M10.5'
-    x, y, xerr, yerr = read_data(name, 8)
+    x, y, xerr, yerr = read_data(name, 9)
     #errorbar(x, y ,yerr=yerr, fmt='o', ecolor='tab:blue',color='tab:blue', alpha=0.5, label='DML006N188')
     errorbar(x, y ,yerr=yerr, xerr=xerr, fmt='o', ecolor='tab:blue',color='tab:blue', alpha=0.5, label='DML006N188')
 
@@ -203,12 +203,12 @@ def plot_outputs():
     grid(True)
 
     name = 'DML006N188_SigmaConstant10_M10.0'
-    x, y, xerr, yerr = read_data(name, 8)
+    x, y, xerr, yerr = read_data(name, 9)
     #errorbar(x, y ,yerr=yerr, xerr=xerr, fmt='o', ecolor='tab:red',color='tab:red', alpha=0.5)
     errorbar(x, y ,yerr=yerr, fmt='o', ecolor='tab:red',color='tab:red', alpha=0.5)
 
     name = 'DML006N188_SigmaConstant10_M10.5'
-    x, y, xerr, yerr = read_data(name, 8)
+    x, y, xerr, yerr = read_data(name, 9)
     #errorbar(x, y ,yerr=yerr, xerr=xerr, fmt='v', ecolor='tab:red',color='tab:red', alpha=0.5, label='DML006N188/Sigma10')
     errorbar(x, y ,yerr=yerr, fmt='v', ecolor='tab:red',color='tab:red', alpha=0.5, label='DML006N188/Sigma10')
 
