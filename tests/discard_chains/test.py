@@ -18,10 +18,10 @@ warnings.filterwarnings('ignore', 'The iteration is not making good progress')
 
 def quality(N0, v0, sigma0, x, y):
 
-    logM200, logc200 = find_nfw_params(10 ** N0, 10 ** v0, 10 ** sigma0, 10., np.log10(c_M_relation(10.)))
+    #logM200, logc200 = find_nfw_params(10 ** N0, 10 ** v0, 10 ** sigma0, 10., np.log10(c_M_relation(10.)))
 
     Nbins = len(x)
-    rho_model = sidm_halo_model(x, 10**N0, 10**v0, 10**sigma0, logM200)
+    rho_model = sidm_halo_model(x, 10**N0, 10**v0, 10**sigma0)
 
     quality = np.sum( (y-rho_model)**2 ) / Nbins
     return quality
@@ -64,7 +64,7 @@ def log_prior_c200(c0, log10M0):
 
     return w
 
-def log_prior(theta, logM200, logc200):
+def log_prior(theta):
     """
     The natural logarithm of the prior probability.
 
@@ -86,8 +86,10 @@ def log_prior(theta, logM200, logc200):
         if -2. < sigma0 < 4. and 6 < logM200 < 14 and 0 < logc200 < 2:
 
             # Prior distribution on c200:
-            c200 = 10 ** logc200
-            log_prior = log_prior_c200(c200, logM200)
+            #c200 = 10 ** logc200
+            #log_prior = log_prior_c200(c200, logM200)
+
+            log_prior = 0
 
 
     return log_prior
@@ -103,13 +105,14 @@ def log_posterior(theta):
         yerr (array): the standard deviation of the data points
     """
     N0, v0, sigma0 = theta
-    logM200, logc200 = find_nfw_params(10 ** N0, 10 ** v0, 10 ** sigma0, 10., np.log10(c_M_relation(10.)))
+    #logM200, logc200 = find_nfw_params(10 ** N0, 10 ** v0, 10 ** sigma0, 10., np.log10(c_M_relation(10.)))
 
-    lp = log_prior(theta, logM200, logc200)
+    lp = log_prior(theta)
 
     if not np.isfinite(lp):
         return -np.inf
-    return lp + log_likelihood(theta, logM200)
+
+    return lp + log_likelihood(theta)
 
 def log_ml(theta, x, y, yerr):
     """
@@ -122,14 +125,14 @@ def log_ml(theta, x, y, yerr):
         yerr (array): the standard deviation of the data points
     """
     N0, v0, sigma0 = theta
-    logM200, _ = find_nfw_params(10 ** N0, 10 ** v0, 10 ** sigma0, 10., np.log10(c_M_relation(10.)))
+    #logM200, _ = find_nfw_params(10 ** N0, 10 ** v0, 10 ** sigma0, 10., np.log10(c_M_relation(10.)))
 
-    model = sidm_halo_model(x, 10**N0, 10**v0, 10**sigma0, logM200)
+    model = sidm_halo_model(x, 10**N0, 10**v0, 10**sigma0)
     sigma2 = yerr**2
     log_l = -0.5 * np.sum((y - model) ** 2 / sigma2)
     return log_l
 
-def log_likelihood(theta, logM200):
+def log_likelihood(theta):
     """
     The natural logarithm of the joint likelihood.
 
@@ -140,7 +143,7 @@ def log_likelihood(theta, logM200):
         yerr (array): the standard deviation of the data points
     """
     N0, v0, sigma0 = theta
-    model = sidm_halo_model(x_global, 10**N0, 10**v0, 10**sigma0, logM200)
+    model = sidm_halo_model(x_global, 10**N0, 10**v0, 10**sigma0)
     sigma2 = yerr_global ** 2
     log_l = -0.5 * np.sum((y_global - model) ** 2 / sigma2)
     return log_l
@@ -154,9 +157,9 @@ def likelihood_of_chain(chain):
     for k in range(0, steps):
 
         N0, v0, sigma0 = chain[k,:]
-        logM200, _ = find_nfw_params(10 ** N0, 10 ** v0, 10 ** sigma0, 10., np.log10(c_M_relation(10.)))
+        #logM200, _ = find_nfw_params(10 ** N0, 10 ** v0, 10 ** sigma0, 10., np.log10(c_M_relation(10.)))
 
-        lk += log_likelihood(chain[k,:], logM200)
+        lk += log_likelihood(chain[k,:])
 
     lk /= steps
     return lk
@@ -164,9 +167,9 @@ def likelihood_of_chain(chain):
 
 if __name__ == '__main__':
 
-    input_file = "../../data/L006N188_SigmaConstant01/Individual_sample/Profile_halos_M11.0_DML006N188_SigmaConstant01_0.txt"
+    input_file = "../../data/L006N188_SigmaConstant10/Individual_sample/Profile_halos_M10.0_DML006N188_SigmaConstant10_5.txt"
     output_folder = "./"
-    name = "DML006N188_SigmaConstant01_M11.0_0"
+    name = "DML006N188_SigmaConstant10_M10.0_5"
 
     # Output data
     output_file = output_folder+"Output_"+name+".txt"
@@ -188,7 +191,7 @@ if __name__ == '__main__':
     print("Finding best-initial sigma0..")
     #sigma0 = find_initial_sigma0(rho0, r0, v0, x, y, yerr)
     #sigma0 = calculate_log_sigma0(10**rho0, 10**v0, 10)
-    sigma0 = 0
+    sigma0 = 1
     N0 = calculate_log_N0(10**rho0, 10**v0, 10**sigma0)
 
     print("======")
@@ -214,7 +217,8 @@ if __name__ == '__main__':
     global x_global, y_global, yerr_global
     x_global, y_global, yerr_global = x, y, yerr
 
-    pos = soln.x + 1e-4 * np.random.randn(64, 3)
+    #pos = soln.x + 1e-4 * np.random.randn(64, 3)
+    pos = soln.x + 1e-2 *np.random.randn(64, 3)
     nwalkers, ndim = pos.shape
 
     with Pool() as pool:
@@ -225,27 +229,26 @@ if __name__ == '__main__':
         multi_time = end - start
         print("Multiprocessing took {0:.1f} minutes".format(multi_time / 60))
 
-    samples = sampler.get_chain(discard=0, thin=1, flat=False)
+    samples = sampler.get_chain(discard=100, thin=1, flat=False)
 
     samples_log_prob = sampler.get_log_prob()
 
-    print("Mean autocorrelation time: {0:.3f} steps".format(np.mean(sampler.get_autocorr_time())))
+    print("Mean autocorrelation time: {0:.3f} steps".format(np.mean(sampler.get_autocorr_time(quiet=True))))
 
     # Removing stuck iterations
-    ll_walkers = np.zeros(nwalkers)
-
-    for k in range(nwalkers):
-        ll_walkers[k] = np.sum(samples_log_prob[:,k]) / len(samples_log_prob[:,0])
+    ll_walkers = np.sum(samples_log_prob[:,:],axis=0) / len(samples_log_prob[:,0])
+    index = np.argsort(ll_walkers)
+    ll_walkers = ll_walkers[index]
 
     C = 100.
     ll_k_diff = ll_walkers[1:] - ll_walkers[:-1]
-    ll_k_diff -= C * (ll_walkers[:-1]-ll_walkers[0]) / np.arange(1,nwalkers)
-    select_chain = np.where(ll_k_diff > 0)[0]
+    ll_k_diff -= C * (ll_walkers[1:]-ll_walkers[0]) / np.arange(1,nwalkers)
+    select_chain = np.where(ll_k_diff < 0)[0] # select where difference is smaller than average difference
 
     new_chain = np.arange(0, int(nwalkers / 4)) #let's keep first 64/4 walkers
     new_chain = np.append(new_chain, select_chain[select_chain > nwalkers / 4])
 
-    new_sample = samples[:, new_chain]
+    new_sample = samples[:, index[new_chain]]
     s = list(new_sample.shape[1:])
     s[0] = np.prod(new_sample.shape[:2])
     new_sample = new_sample.reshape(s) # flatting..

@@ -62,6 +62,7 @@ def log_prior(theta):
 
         # Flat priors on all except c200:
         if -2. < sigma0 < 4. and 6 < logM200 < 14 and 0 < logc200 < 2:
+
             # Prior distribution on c200
             c200 = 10 ** logc200
             log_prior = log_prior_c200(c200, logM200)
@@ -117,6 +118,30 @@ def log_likelihood(theta):
     log_l = -0.5 * np.sum((y_global - model) ** 2 / sigma2)
     return log_l
 
+
+def check_chain(samples, samples_log_prob, nwalkers):
+
+    # Removing stuck iterations
+    ll_walkers = np.sum(samples_log_prob[:, :], axis=0) / len(samples_log_prob[:, 0])
+
+    index = np.argsort(ll_walkers)
+    ll_walkers = ll_walkers[index]
+
+    C = 100.
+    ll_k_diff = ll_walkers[1:] - ll_walkers[:-1]
+    ll_k_diff -= C * (ll_walkers[1:] - ll_walkers[0]) / np.arange(1, nwalkers)
+    select_chain = np.where(ll_k_diff < 0)[0]  # select where difference is smaller than average difference
+
+    new_chain = np.arange(0, int(nwalkers / 4))  # let's keep first 64/4 walkers
+    new_chain = np.append(new_chain, select_chain[select_chain > nwalkers / 4])
+
+    new_sample = samples[:, index[new_chain]]
+
+    s = list(new_sample.shape[1:])
+    s[0] = np.prod(new_sample.shape[:2])
+    new_sample = new_sample.reshape(s)  # flatting..
+    return new_sample
+
 def run_mcmc(soln, x, y, yerr, errorbar, name, output_folder):
 
     global x_global, y_global, yerr_global
@@ -126,7 +151,7 @@ def run_mcmc(soln, x, y, yerr, errorbar, name, output_folder):
 
     N0, v0, ns0, sigma0 = soln.x
 
-    pos = soln.x + 1e-4 * np.random.randn(64, 4)
+    pos = soln.x + 1e-2 * np.random.randn(64, 4)
     nwalkers, ndim = pos.shape
 
     with Pool() as pool:
@@ -138,7 +163,13 @@ def run_mcmc(soln, x, y, yerr, errorbar, name, output_folder):
         print("Multiprocessing took {0:.1f} minutes".format(multi_time / 60))
 
 
-    flat_samples = sampler.get_chain(discard=10, thin=15, flat=True)
+    samples = sampler.get_chain(discard=100, thin=1, flat=False)
+    samples_log_prob = sampler.get_log_prob()
+
+    print("Mean autocorrelation time: {0:.3f} steps".format(np.mean(sampler.get_autocorr_time(quiet=True))))
+
+    # Removing stuck iterations
+    flat_samples = check_chain(samples, samples_log_prob, nwalkers)
 
     labels = ["log$_{10}$N$_{0}$",
               "log$_{10}$v$_{0}$",
@@ -150,6 +181,24 @@ def run_mcmc(soln, x, y, yerr, errorbar, name, output_folder):
     ns0 = np.median(flat_samples[:, 2])
     sigma0 = np.median(flat_samples[:, 3])
 
+    # Plot parameters
+    params = {
+        "font.size": 12,
+        "font.family": "Times",
+        "text.usetex": True,
+        "figure.figsize": (4, 3),
+        "figure.subplot.left": 0.18,
+        "figure.subplot.right": 0.95,
+        "figure.subplot.bottom": 0.18,
+        "figure.subplot.top": 0.95,
+        "figure.subplot.wspace": 0.25,
+        "figure.subplot.hspace": 0.25,
+        "lines.markersize": 6,
+        "lines.linewidth": 1.5,
+        "figure.max_open_warning": 0,
+    }
+    rcParams.update(params)
+
     # Make the base corner plot
     figure = corner.corner(
         flat_samples, labels=labels, quantiles=[0.16, 0.84],
@@ -159,56 +208,59 @@ def run_mcmc(soln, x, y, yerr, errorbar, name, output_folder):
 
     plt.savefig(output_corner_plot, dpi=200)
 
-    labels = ["c$_{200}$",
-              "log$_{10}$(M$_{200}$/M$_{\odot}$)",
-              "log$_{10}$($\sigma_{0}$/m/cm$^{2}$g$^{-1}$)"]
+    output_data = output_folder + "samples_" + name + ".txt"
+    np.savetxt(output_data, flat_samples, fmt="%s")
 
-    nfw_params = convert_params(flat_samples)
-
-    c200 = np.median(nfw_params[:, 0])
-    logM200 = np.median(nfw_params[:, 1])
-    log10sigma0 = np.median(nfw_params[:, 2])
-    log10N0 = np.median(flat_samples[:, 0])
-    log10v0 = np.median(flat_samples[:, 1])
-    ns0 = np.median(flat_samples[:, 2])
-
-    mcmc_sol = np.array([log10N0, log10v0, ns0, log10sigma0, logM200, np.log10(c200)])
-    output_file = output_folder + "MCMC_Output_" + name + ".txt"
-    output_fig = output_folder + "MCMC_fit_" + name + ".png"
-    plot_solution(x, 10**y, 10**errorbar, mcmc_sol, output_fig, output_file)
-
-    # Make the base corner plot
-    figure = corner.corner(
-        nfw_params, labels=labels, quantiles=[0.16, 0.84],
-        truths=[c200, logM200, log10sigma0], show_titles=True,
-        title_kwargs={"fontsize": 16}
-    )
-
-    output_corner_plot = output_folder + "corner_nfw_" + name + ".png"
-    plt.savefig(output_corner_plot, dpi=200)
-
-    # Output bestfit paramter range
-    sol_median = np.array(
-        [10 ** log10N0, 10 ** log10v0, ns0, 10 ** log10sigma0, logM200, c200])
-
-    log10N0 = np.percentile(flat_samples[:, 0], 84)
-    log10v0 = np.percentile(flat_samples[:, 1], 84)
-    ns0 = np.percentile(flat_samples[:, 2], 84)
-    log10sigma0 = np.percentile(flat_samples[:, 3], 84)
-    log10M200 = np.percentile(nfw_params[:, 1], 84)
-    c200 = np.percentile(nfw_params[:, 0], 84)
-    sol_upper = np.array(
-        [10 ** log10N0, 10 ** log10v0, ns0, 10 ** log10sigma0, log10M200, c200])
-
-    log10N0 = np.percentile(flat_samples[:, 0], 16)
-    log10v0 = np.percentile(flat_samples[:, 1], 16)
-    ns0 = np.percentile(flat_samples[:, 2], 16)
-    log10sigma0 = np.percentile(flat_samples[:, 3], 16)
-    log10M200 = np.percentile(nfw_params[:, 1], 16)
-    c200 = np.percentile(nfw_params[:, 0], 16)
-    sol_lower = np.array(
-        [10 ** log10N0, 10 ** log10v0, ns0, 10 ** log10sigma0, log10M200, c200])
-
-    output_file = output_folder + "MCMC_parameter_range_" + name + ".txt"
-
-    output_best_fit_params(sol_median, sol_upper, sol_lower, output_file)
+    # labels = ["c$_{200}$",
+    #           "log$_{10}$(M$_{200}$/M$_{\odot}$)",
+    #           "log$_{10}$($\sigma_{0}$/m/cm$^{2}$g$^{-1}$)"]
+    #
+    # nfw_params = convert_params(flat_samples)
+    #
+    # c200 = np.median(nfw_params[:, 0])
+    # logM200 = np.median(nfw_params[:, 1])
+    # log10sigma0 = np.median(nfw_params[:, 2])
+    # log10N0 = np.median(flat_samples[:, 0])
+    # log10v0 = np.median(flat_samples[:, 1])
+    # ns0 = np.median(flat_samples[:, 2])
+    #
+    # mcmc_sol = np.array([log10N0, log10v0, ns0, log10sigma0, logM200, np.log10(c200)])
+    # output_file = output_folder + "MCMC_Output_" + name + ".txt"
+    # output_fig = output_folder + "MCMC_fit_" + name + ".png"
+    # plot_solution(x, 10**y, 10**errorbar, mcmc_sol, output_fig, output_file)
+    #
+    # # Make the base corner plot
+    # figure = corner.corner(
+    #     nfw_params, labels=labels, quantiles=[0.16, 0.84],
+    #     truths=[c200, logM200, log10sigma0], show_titles=True,
+    #     title_kwargs={"fontsize": 16}
+    # )
+    #
+    # output_corner_plot = output_folder + "corner_nfw_" + name + ".png"
+    # plt.savefig(output_corner_plot, dpi=200)
+    #
+    # # Output bestfit paramter range
+    # sol_median = np.array(
+    #     [10 ** log10N0, 10 ** log10v0, ns0, 10 ** log10sigma0, logM200, c200])
+    #
+    # log10N0 = np.percentile(flat_samples[:, 0], 84)
+    # log10v0 = np.percentile(flat_samples[:, 1], 84)
+    # ns0 = np.percentile(flat_samples[:, 2], 84)
+    # log10sigma0 = np.percentile(flat_samples[:, 3], 84)
+    # log10M200 = np.percentile(nfw_params[:, 1], 84)
+    # c200 = np.percentile(nfw_params[:, 0], 84)
+    # sol_upper = np.array(
+    #     [10 ** log10N0, 10 ** log10v0, ns0, 10 ** log10sigma0, log10M200, c200])
+    #
+    # log10N0 = np.percentile(flat_samples[:, 0], 16)
+    # log10v0 = np.percentile(flat_samples[:, 1], 16)
+    # ns0 = np.percentile(flat_samples[:, 2], 16)
+    # log10sigma0 = np.percentile(flat_samples[:, 3], 16)
+    # log10M200 = np.percentile(nfw_params[:, 1], 16)
+    # c200 = np.percentile(nfw_params[:, 0], 16)
+    # sol_lower = np.array(
+    #     [10 ** log10N0, 10 ** log10v0, ns0, 10 ** log10sigma0, log10M200, c200])
+    #
+    # output_file = output_folder + "MCMC_parameter_range_" + name + ".txt"
+    #
+    # output_best_fit_params(sol_median, sol_upper, sol_lower, output_file)
