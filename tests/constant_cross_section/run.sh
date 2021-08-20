@@ -6,14 +6,11 @@
 #output="./output/"
 #python main.py -i=$input -o=$output -n=$name
 
-END=1
-for ((i=0;i<=END;i++)); do
-  input="../../data/L006N188_SigmaConstant01/Individual_sample/Profile_halos_M10.0_NPDML006N188_SigmaConstant01_$i.txt"
-  echo Running for Profile_halos_M10.0_NPDML006N188_SigmaConstant01_$i.txt
-  name="NPDML006N188_SigmaConstant01_M10_$i"
-  output="./output/Individual_sample/"
-  python main.py -i=$input -o=$output -n=$name -hs="Indiviual_sample"
-done
+input="../../data/FermionDSph_Fornax.txt"
+echo Running FermionDSph_Fornax
+name="FermionDSph_Fornax"
+output="./output/"
+python main.py -i=$input -o=$output -n=$name
 
 #END=10
 #for ((i=0;i<=END;i++)); do
