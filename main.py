@@ -3,7 +3,7 @@ from scipy.optimize import minimize
 from scipy.optimize import curve_fit
 from plotter import plot_solution
 from mcmc import log_likelihood, run_mcmc
-from functions import fit_isothermal_model, calculate_log_v0, calculate_log_N0
+from functions import fit_isothermal_model, calculate_log_v0, calculate_log_N0, calculate_log_sigma0
 from functions import read_data, read_single_halo
 from functions import find_nfw_params, c_M_relation
 
@@ -34,22 +34,17 @@ if __name__ == '__main__':
     else :
         x, y, yerr, errorbar = read_single_halo(input_file)
 
-    # Initial cross section input
-    sigma0 = args.sigma
-    sigma0 = np.log10(sigma0)
-    ns0 = args.variable
-    w0 = args.wvel
-    w0 = np.log10(w0)
-
     # First fit profile based on Isothermal model
-    popt, pcov = curve_fit(fit_isothermal_model, x, y, p0=[1, 10, ns0])
+    popt, pcov = curve_fit(fit_isothermal_model, x, y, p0=[1, 10, 0])
     r0 = popt[0]
     rho0 = popt[1]
     ns0 = popt[2]
 
     # Log10 values of free params
     v0 = calculate_log_v0(r0, 10**rho0)
+    sigma0 = calculate_log_sigma0(10**rho0, 10**v0, 1)
     N0 = calculate_log_N0(10**rho0, 10**v0, ns0, 10**sigma0, 10**w0)
+    w0 = 1.0 #log10
 
     print("======")
     print("Initial estimates:")
@@ -58,6 +53,7 @@ if __name__ == '__main__':
     print("ns0 = {0:.3f}".format(ns0))
     print("N0 = {0:.3f}".format(N0))
     print("v0 = {0:.3f}".format(v0))
+    print("sigma0 = {0:.3f}".format(10**sigma0))
     print("======")
 
     np.random.seed(42)

@@ -20,8 +20,8 @@ def read_single_halo(file):
     # Next:
     x = data[:,0]
     y = np.log10(data[:,1])
-    yerr = np.zeros(len(x))
-    errorbar = np.zeros(len(x))
+    yerr = np.ones(len(x)) * 0.1
+    errorbar = np.ones(len(x)) * 0.1
 
     return x, y, yerr, errorbar
 
@@ -238,6 +238,22 @@ def calculate_log_v0(r0, rho0):
     v0 = r0**2 * 4. * np.pi * G * rho0
     v0 = np.sqrt(v0)
     return np.log10(v0) #km/s
+
+def calculate_log_sigma0(rho0, v0, N0):
+    """
+    Calculates the number of scattering events within r0.
+    """
+    Msun_in_cgs = 1.98848e33
+    kpc_in_cgs = 3.08567758e21
+
+    t_age = 7.5 # Gyr - assuming constant halo age
+    t_age_cgs = t_age * 1e9 * 365.24 * 24 * 3600 # sec
+    rho0_cgs = rho0 * Msun_in_cgs / kpc_in_cgs**3
+
+    sigma0 = N0 / (t_age_cgs * rho0_cgs * (4. / np.sqrt(np.pi)) * v0 * 1e5)
+
+    return np.log10(sigma0)
+
 
 def calculate_log_N0(rho0, v0, ns0, sigma0, w0):
     """

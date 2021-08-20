@@ -167,9 +167,9 @@ def likelihood_of_chain(chain):
 
 if __name__ == '__main__':
 
-    input_file = "../../data/L006N188_SigmaConstant10/Individual_sample/Profile_halos_M10.0_DML006N188_SigmaConstant10_5.txt"
+    input_file = "../../data/L006N188_SigmaConstant01/Individual_sample/Profile_halos_M10.0_DML006N188_SigmaConstant01_5.txt"
     output_folder = "./"
-    name = "DML006N188_SigmaConstant10_M10.0_5"
+    name = "DML006N188_SigmaConstant01_M10.0_5"
 
     # Output data
     output_file = output_folder+"Output_"+name+".txt"
@@ -191,7 +191,7 @@ if __name__ == '__main__':
     print("Finding best-initial sigma0..")
     #sigma0 = find_initial_sigma0(rho0, r0, v0, x, y, yerr)
     #sigma0 = calculate_log_sigma0(10**rho0, 10**v0, 10)
-    sigma0 = 1
+    sigma0 = 0
     N0 = calculate_log_N0(10**rho0, 10**v0, 10**sigma0)
 
     print("======")

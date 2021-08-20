@@ -29,7 +29,7 @@ def sidm_halo_model(r, N0, v0, ns0, sigma0, w0):
     r0 = v0**2 / (4. * np.pi * G * rho0)
     r0 = np.sqrt(r0) # kpc
 
-    sol = fsolve(find_r1, 20, args=(rho0_cgs, v0, ns0, t_age_cgs, sigma0, w0))
+    sol = fsolve(find_r1, 10, args=(rho0_cgs, v0, ns0, t_age_cgs, sigma0, w0))
     r1 = sol[0] * r0 # kpc
 
     M1 = M_isothermal(r1, r0, rho0, ns0) # Msun
