@@ -41,10 +41,10 @@ if __name__ == '__main__':
     ns0 = popt[2]
 
     # Log10 values of free params
+    w0 = 1.0  # log10
     v0 = calculate_log_v0(r0, 10**rho0)
     sigma0 = calculate_log_sigma0(10**rho0, 10**v0, 1)
     N0 = calculate_log_N0(10**rho0, 10**v0, ns0, 10**sigma0, 10**w0)
-    w0 = 1.0 #log10
 
     print("======")
     print("Initial estimates:")
